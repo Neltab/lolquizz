@@ -56,6 +56,14 @@ func (h *Hub) unregisterClient(client *Client) {
 	}
 }
 
+func (h *Hub) Register(client *Client) {
+	h.register <- client
+}
+
+func (h *Hub) Unregister(client *Client) {
+	h.unregister <- client
+}
+
 func (h *Hub) AddToRoom(playerId room.PlayerId, roomId room.RoomId) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
