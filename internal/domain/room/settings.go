@@ -1,5 +1,7 @@
 package room
 
 type Settings struct {
-	MaxPlayers int
+	MaxPlayers    int
+	Difficulty    string
+	QuestionCount int
 }

@@ -50,14 +50,14 @@ func (r *Room) Join(player *Player) error {
 	return nil
 }
 
-func (r *Room) Leave(player *Player) error {
-	if _, ok := r.Players[player.Id]; !ok {
+func (r *Room) Leave(playerId PlayerId) error {
+	if _, ok := r.Players[playerId]; !ok {
 		return ErrPlayerNotFound
 	}
 
-	delete(r.Players, player.Id)
+	delete(r.Players, playerId)
 
-	if player.Id == r.HostId && len(r.Players) > 0 {
+	if playerId == r.HostId && len(r.Players) > 0 {
 		for id := range r.Players {
 			r.HostId = id
 			break

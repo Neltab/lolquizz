@@ -1,10 +1,15 @@
 package ws
 
-import "lolquizz/internal/application"
+import (
+	"context"
+	"encoding/json"
+	"lolquizz/internal/application"
+)
 
 type Router struct {
 	roomService *application.RoomService
 	gameService *application.GameService
+	hub         *Hub
 }
 
 func NewRouter(roomService *application.RoomService, gameService *application.GameService) *Router {
@@ -15,33 +20,42 @@ func NewRouter(roomService *application.RoomService, gameService *application.Ga
 }
 
 func (r *Router) Handle(client *Client, msg IncomingMessage) {
+	ctx := context.Background() //TODO: use context from client
+
 	switch msg.Type {
 	case MsgJoinRoom:
-		r.handleJoinRoom(client, msg)
-	case MsgLeaveRoom:
-		r.handleLeaveRoom(client, msg)
-	case MsgUpdateSettings:
-		r.handleUpdateSettings(client, msg)
-	case MsgStartGame:
-		r.handleStartGame(client, msg)
-	case MsgSubmitAnswer:
-		r.handleSubmitAnswer(client, msg)
-	case MsgJudgeAnswer:
-		r.handleJudgeAnswer(client, msg)
-	case MsgNextRound:
-		r.handleNextRound(client, msg)
+		r.handleJoinRoom(ctx, client, msg.Data)
+	// case MsgLeaveRoom:
+	// 	r.handleLeaveRoom(client, msg)
+	// case MsgUpdateSettings:
+	// 	r.handleUpdateSettings(client, msg)
+	// case MsgStartGame:
+	// 	r.handleStartGame(client, msg)
+	// case MsgSubmitAnswer:
+	// 	r.handleSubmitAnswer(client, msg)
+	// case MsgJudgeAnswer:
+	// 	r.handleJudgeAnswer(client, msg)
+	// case MsgNextRound:
+	// 	r.handleNextRound(client, msg)
 	default:
-        c.SendError("unknown message type: " + msg.Type)
-    }
+		client.SendError("unknown message type: " + msg.Type)
+	}
 }
 
-func (r *Router) handleJoinRoom(ctx context.Context, client *Client, msg IncomingMessage) {
+func (r *Router) handleJoinRoom(ctx context.Context, client *Client, data json.RawMessage) {
 	var req struct {
-		RoomCode string `json:"room_code"`
-		playerName string `json:"player_name"`
+		RoomCode   string `json:"room_code"`
+		PlayerName string `json:"player_name"`
 	}
-	if err := json.Unmarshal(msg.Data, &req); err != nil {
+	if err := json.Unmarshal(data, &req); err != nil {
 		client.SendError("invalid payload")
 		return
 	}
-	room, err := r.roomService.JoinRoom(ctx, )
+	room, err := r.roomService.JoinRoom(ctx, req.RoomCode, client.playerId, req.PlayerName)
+	if err != nil {
+		client.SendError(err.Error())
+		return
+	}
+
+	r.hub.AddToRoom(client.playerId, room.Id)
+}

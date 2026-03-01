@@ -6,10 +6,6 @@ import (
 	"lolquizz/internal/domain/room"
 )
 
-type Event interface {
-	EventName() string
-}
-
 type QuestionStartedEvent struct {
 	RoomId         room.RoomId
 	QuestionNumber int
@@ -55,3 +51,11 @@ type GameFinishedEvent struct {
 func (e *GameFinishedEvent) EventName() string {
 	return "game_finished"
 }
+
+type PlayerJoinedEvent struct {
+	RoomID  room.RoomId    `json:"room_id"`
+	Player  *room.Player   `json:"player"`
+	Players []*room.Player `json:"players"`
+}
+
+func (e PlayerJoinedEvent) EventName() string { return "player_joined" }

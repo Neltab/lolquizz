@@ -4,17 +4,18 @@ import (
 	"context"
 	"fmt"
 
+	"lolquizz/internal/domain/event"
 	"lolquizz/internal/domain/game"
 	"lolquizz/internal/domain/room"
 )
 
 type EventPublisher interface {
-	PublishToRoom(roomId room.RoomId, event game.Event)
-	PublishToPlayer(playerId room.PlayerId, event game.Event)
+	PublishToRoom(roomId room.RoomId, event event.Event)
+	PublishToPlayer(playerId room.PlayerId, event event.Event)
 }
 
 type QuestionProvider interface {
-	GetQuestions(ctx context.Context, count int, difficulty string) ([]game.Question, error)
+	GetQuestions(ctx context.Context, count int, difficulty string) ([]*game.Question, error)
 }
 
 type GameService struct {
@@ -38,7 +39,7 @@ func NewGameService(rooms room.Repository, events EventPublisher, questions Ques
 }
 
 func (s *GameService) StartGame(ctx context.Context, roomId room.RoomId, hostId room.PlayerId) error {
-	r, err := s.rooms.FindByID(ctx, roomId)
+	r, err := s.rooms.FindById(ctx, roomId)
 	if err != nil {
 		return fmt.Errorf("find room: %w", err)
 	}
@@ -71,8 +72,6 @@ func (s *GameService) StartGame(ctx context.Context, roomId room.RoomId, hostId 
 		QuestionText: question.Text,
 		Duration:     question.Duration,
 	})
-
-	go s.StartRoundTimer(ctx, g)
 
 	return nil
 }

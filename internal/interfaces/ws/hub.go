@@ -2,7 +2,7 @@ package ws
 
 import (
 	"encoding/json"
-	"lolquizz/internal/domain/game"
+	"lolquizz/internal/domain/event"
 	"lolquizz/internal/domain/room"
 	"sync"
 )
@@ -71,8 +71,8 @@ func (h *Hub) AddToRoom(playerId room.PlayerId, roomId room.RoomId) {
 }
 
 func (h *Hub) BroadcastToRoom(roomID room.RoomId, msg OutgoingMessage) {
-	h.mu.Lock()
-	defer h.mu.Unlock()
+	h.mu.RLock()
+	defer h.mu.RUnlock()
 
 	data, _ := json.Marshal(msg)
 	playerIds := h.rooms[roomID]
@@ -87,22 +87,22 @@ func (h *Hub) BroadcastToRoom(roomID room.RoomId, msg OutgoingMessage) {
 }
 
 func (h *Hub) SendToPlayer(playerId room.PlayerId, msg OutgoingMessage) {
-	h.mu.Lock()
-	defer h.mu.Unlock()
+	h.mu.RLock()
+	defer h.mu.RUnlock()
 
 	if client, ok := h.clients[playerId]; ok {
 		client.SendJson(msg)
 	}
 }
 
-func (h *Hub) PublishToROom(roomId room.RoomId, event game.Event) {
+func (h *Hub) PublishToROom(roomId room.RoomId, event event.Event) {
 	h.BroadcastToRoom(roomId, OutgoingMessage{
 		Type:    event.EventName(),
 		Payload: event,
 	})
 }
 
-func (h *Hub) PublishToPlayer(playerId room.PlayerId, event game.Event) {
+func (h *Hub) PublishToPlayer(playerId room.PlayerId, event event.Event) {
 	h.SendToPlayer(playerId, OutgoingMessage{
 		Type:    event.EventName(),
 		Payload: event,
