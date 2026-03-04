@@ -4,10 +4,11 @@ import (
 	"time"
 
 	"lolquizz/internal/domain/room"
+	"lolquizz/internal/domain/shared"
 )
 
 type QuestionStartedEvent struct {
-	RoomId         room.RoomId
+	RoomId         shared.RoomId
 	QuestionNumber int
 	QuestionText   string
 	Duration       time.Duration
@@ -18,8 +19,8 @@ func (e *QuestionStartedEvent) EventName() string {
 }
 
 type AnswerSubmittedEvent struct {
-	RoomId   room.RoomId
-	PlayerId room.PlayerId
+	RoomId   shared.RoomId
+	PlayerId shared.PlayerId
 }
 
 func (e *AnswerSubmittedEvent) EventName() string {
@@ -27,8 +28,8 @@ func (e *AnswerSubmittedEvent) EventName() string {
 }
 
 type AnswerJudgedEvent struct {
-	RoomId   room.RoomId
-	PlayerId room.PlayerId
+	RoomId   shared.RoomId
+	PlayerId shared.PlayerId
 	Correct  bool
 }
 
@@ -37,7 +38,7 @@ func (e *AnswerJudgedEvent) EventName() string {
 }
 
 type TimerExpiredEvent struct {
-	RoomId room.RoomId
+	RoomId shared.RoomId
 }
 
 func (e *TimerExpiredEvent) EventName() string {
@@ -45,7 +46,7 @@ func (e *TimerExpiredEvent) EventName() string {
 }
 
 type GameFinishedEvent struct {
-	RoomId room.RoomId
+	RoomId shared.RoomId
 }
 
 func (e *GameFinishedEvent) EventName() string {
@@ -53,7 +54,7 @@ func (e *GameFinishedEvent) EventName() string {
 }
 
 type PlayerJoinedEvent struct {
-	RoomID  room.RoomId    `json:"room_id"`
+	RoomID  shared.RoomId  `json:"room_id"`
 	Player  *room.Player   `json:"player"`
 	Players []*room.Player `json:"players"`
 }

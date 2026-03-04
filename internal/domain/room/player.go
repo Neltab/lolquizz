@@ -1,12 +1,14 @@
 package room
 
+import "lolquizz/internal/domain/shared"
+
 type Player struct {
-	Id    PlayerId
+	Id    shared.PlayerId
 	Name  string
 	Score int
 }
 
-func NewPlayer(id PlayerId, name string) *Player {
+func NewPlayer(id shared.PlayerId, name string) *Player {
 	return &Player{
 		Id:    id,
 		Name:  name,

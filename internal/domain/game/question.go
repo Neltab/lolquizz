@@ -1,9 +1,8 @@
 package game
 
 import (
+	"lolquizz/internal/domain/shared"
 	"time"
-
-	"lolquizz/internal/domain/room"
 )
 
 type Difficulty int
@@ -17,7 +16,7 @@ const (
 type Question struct {
 	Text       string
 	Image      string
-	Answers    map[room.PlayerId]*Answer
+	Answers    map[shared.PlayerId]*Answer
 	Difficulty Difficulty
 	Duration   time.Duration
 }
@@ -26,13 +25,13 @@ func NewQuestion(text string, image string, difficulty Difficulty, duration time
 	return &Question{
 		Text:       text,
 		Image:      image,
-		Answers:    make(map[room.PlayerId]*Answer),
+		Answers:    make(map[shared.PlayerId]*Answer),
 		Difficulty: difficulty,
 		Duration:   duration,
 	}
 }
 
-func (q *Question) Answer(playerId room.PlayerId, answer string, answerTime time.Time) {
+func (q *Question) Answer(playerId shared.PlayerId, answer string, answerTime time.Time) {
 	q.Answers[playerId] = &Answer{
 		PlayerId:     playerId,
 		Answer:       answer,
@@ -40,6 +39,6 @@ func (q *Question) Answer(playerId room.PlayerId, answer string, answerTime time
 	}
 }
 
-func (q *Question) GetAnswer(playerId room.PlayerId) *Answer {
+func (q *Question) GetAnswer(playerId shared.PlayerId) *Answer {
 	return q.Answers[playerId]
 }

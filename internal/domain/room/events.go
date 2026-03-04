@@ -1,21 +1,23 @@
 package room
 
+import "lolquizz/internal/domain/shared"
+
 type PlayerJoinedEvent struct {
-	RoomId RoomId
+	RoomId shared.RoomId
 	Player *Player
 }
 
 func (e PlayerJoinedEvent) EventName() string { return "player_joined" }
 
 type PlayerLeftEvent struct {
-	RoomId  RoomId
-	NewHost PlayerId
+	RoomId  shared.RoomId
+	NewHost shared.PlayerId
 }
 
 func (e PlayerLeftEvent) EventName() string { return "player_left" }
 
 type SettingsUpdatedEvent struct {
-	RoomId   RoomId
+	RoomId   shared.RoomId
 	Settings Settings
 }
 

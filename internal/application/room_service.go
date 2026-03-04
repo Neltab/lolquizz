@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"lolquizz/internal/domain/room"
+	"lolquizz/internal/domain/shared"
 	"math/big"
 	"sync"
 )
@@ -24,14 +25,14 @@ func NewRoomService(rooms room.Repository, events EventPublisher, idGen func() s
 	}
 }
 
-func (s *RoomService) CreateRoom(ctx context.Context, hostId room.PlayerId, hostName string) (*room.Room, error) {
+func (s *RoomService) CreateRoom(ctx context.Context, hostId shared.PlayerId, hostName string) (*room.Room, error) {
 	code, err := s.generateUniqueCode(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("generate room code: %w", err)
 	}
 
 	host := room.NewPlayer(hostId, hostName)
-	r := room.NewRoom(room.RoomId(code), code, host)
+	r := room.NewRoom(shared.RoomId(code), code, host)
 
 	if err := s.rooms.Save(ctx, r); err != nil {
 		return nil, fmt.Errorf("save room: %w", err)
@@ -40,7 +41,7 @@ func (s *RoomService) CreateRoom(ctx context.Context, hostId room.PlayerId, host
 	return r, nil
 }
 
-func (s *RoomService) JoinRoom(ctx context.Context, code string, playerId room.PlayerId, playerName string) (*room.Room, error) {
+func (s *RoomService) JoinRoom(ctx context.Context, code string, playerId shared.PlayerId, playerName string) (*room.Room, error) {
 	r, err := s.rooms.FindByCode(ctx, code)
 	if err != nil {
 		return nil, fmt.Errorf("find room: %w", err)
@@ -63,7 +64,7 @@ func (s *RoomService) JoinRoom(ctx context.Context, code string, playerId room.P
 	return r, nil
 }
 
-func (s *RoomService) LeaveRoom(ctx context.Context, code string, playerId room.PlayerId) error {
+func (s *RoomService) LeaveRoom(ctx context.Context, code string, playerId shared.PlayerId) error {
 	r, err := s.rooms.FindByCode(ctx, code)
 	if err != nil {
 		return fmt.Errorf("find room: %w", err)
@@ -85,7 +86,7 @@ func (s *RoomService) LeaveRoom(ctx context.Context, code string, playerId room.
 	return nil
 }
 
-func (s *RoomService) UpdateSettings(ctx context.Context, roomId room.RoomId, settings room.Settings) error {
+func (s *RoomService) UpdateSettings(ctx context.Context, roomId shared.RoomId, settings room.Settings) error {
 	r, err := s.rooms.FindById(ctx, roomId)
 	if err != nil {
 		return fmt.Errorf("find room: %w", err)

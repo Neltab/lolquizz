@@ -1,7 +1,7 @@
 package http
 
 import (
-	"lolquizz/internal/domain/room"
+	"lolquizz/internal/domain/shared"
 	"lolquizz/internal/interfaces/ws"
 	"net/http"
 
@@ -18,7 +18,7 @@ var upgrader = websocket.Upgrader{
 
 func HandleWebsocket(hub *ws.Hub, router *ws.Router) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		playerId := room.PlayerId(r.URL.Query().Get("playerId"))
+		playerId := shared.PlayerId(r.URL.Query().Get("playerId"))
 		if playerId == "" {
 			http.Error(w, "playerId is required", http.StatusBadRequest)
 			return

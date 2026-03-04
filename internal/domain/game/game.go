@@ -4,9 +4,9 @@ import (
 	"time"
 
 	"lolquizz/internal/domain/room"
+	"lolquizz/internal/domain/shared"
 )
 
-type GameId string
 type GamePhase int
 
 const (
@@ -17,15 +17,15 @@ const (
 )
 
 type Game struct {
-	Id              GameId
-	RoomId          room.RoomId
+	Id              shared.GameId
+	RoomId          shared.RoomId
 	Phase           GamePhase
 	Questions       []*Question
-	Scores          map[room.PlayerId]int
+	Scores          map[shared.PlayerId]int
 	currentQuestion int
 }
 
-func NewGame(id GameId, roomId room.RoomId, questions []*Question, settings room.Settings) (*Game, error) {
+func NewGame(id shared.GameId, roomId shared.RoomId, questions []*Question, settings room.Settings) (*Game, error) {
 	if len(questions) == 0 {
 		return nil, ErrNoQuestions
 	}
@@ -35,7 +35,7 @@ func NewGame(id GameId, roomId room.RoomId, questions []*Question, settings room
 		RoomId:          roomId,
 		Phase:           PhaseQuestions,
 		Questions:       questions,
-		Scores:          make(map[room.PlayerId]int),
+		Scores:          make(map[shared.PlayerId]int),
 		currentQuestion: 0,
 	}, nil
 }
@@ -55,7 +55,7 @@ func (g *Game) NextRound() {
 	}
 }
 
-func (g *Game) SubmitAnswer(playerId room.PlayerId, answer string) error {
+func (g *Game) SubmitAnswer(playerId shared.PlayerId, answer string) error {
 	if g.Phase != PhaseQuestions {
 		return ErrNotInQuestionsPhase
 	}
@@ -69,7 +69,7 @@ func (g *Game) SubmitAnswer(playerId room.PlayerId, answer string) error {
 	return nil
 }
 
-func (g *Game) JudgeAnswer(playerId room.PlayerId, correct bool) error {
+func (g *Game) JudgeAnswer(playerId shared.PlayerId, correct bool) error {
 	if g.Phase != PhaseAnswers {
 		return ErrNotInAnswersPhase
 	}

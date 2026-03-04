@@ -7,21 +7,22 @@ import (
 	"lolquizz/internal/domain/event"
 	"lolquizz/internal/domain/game"
 	"lolquizz/internal/domain/room"
+	"lolquizz/internal/domain/shared"
 )
 
 type EventPublisher interface {
-	PublishToRoom(roomId room.RoomId, event event.Event)
-	PublishToPlayer(playerId room.PlayerId, event event.Event)
+	PublishToRoom(roomId shared.RoomId, event event.Event)
+	PublishToPlayer(playerId shared.PlayerId, event event.Event)
 }
 
 type QuestionProvider interface {
-	GetQuestions(ctx context.Context, count int, difficulty string) ([]*game.Question, error)
+	GetQuestions(ctx context.Context, count int) ([]*game.Question, error)
 }
 
 type GameService struct {
 	rooms     room.Repository
-	games     map[game.GameId]*game.Game
-	roomGames map[room.RoomId]game.GameId
+	games     map[shared.GameId]*game.Game
+	roomGames map[shared.RoomId]shared.GameId
 	events    EventPublisher
 	questions QuestionProvider
 	idGen     func() string
@@ -30,15 +31,15 @@ type GameService struct {
 func NewGameService(rooms room.Repository, events EventPublisher, questions QuestionProvider, idGen func() string) *GameService {
 	return &GameService{
 		rooms:     rooms,
-		games:     make(map[game.GameId]*game.Game),
-		roomGames: make(map[room.RoomId]game.GameId),
+		games:     make(map[shared.GameId]*game.Game),
+		roomGames: make(map[shared.RoomId]shared.GameId),
 		events:    events,
 		questions: questions,
 		idGen:     idGen,
 	}
 }
 
-func (s *GameService) StartGame(ctx context.Context, roomId room.RoomId, hostId room.PlayerId) error {
+func (s *GameService) StartGame(ctx context.Context, roomId shared.RoomId, hostId shared.PlayerId) error {
 	r, err := s.rooms.FindById(ctx, roomId)
 	if err != nil {
 		return fmt.Errorf("find room: %w", err)
@@ -49,12 +50,12 @@ func (s *GameService) StartGame(ctx context.Context, roomId room.RoomId, hostId 
 	}
 
 	settings := r.Settings
-	questions, err := s.questions.GetQuestions(ctx, settings.QuestionCount, settings.Difficulty)
+	questions, err := s.questions.GetQuestions(ctx, settings.QuestionCount)
 	if err != nil {
 		return fmt.Errorf("get questions: %w", err)
 	}
 
-	g, err := game.NewGame(game.GameId(s.idGen()), roomId, questions, settings)
+	g, err := game.NewGame(shared.GameId(s.idGen()), roomId, questions, settings)
 	if err != nil {
 		return fmt.Errorf("create game: %w", err)
 	}

@@ -1,9 +1,10 @@
 package room
 
-import "time"
+import (
+	"lolquizz/internal/domain/shared"
+	"time"
+)
 
-type RoomId string
-type PlayerId string
 type RoomStatus int
 
 const (
@@ -14,22 +15,22 @@ const (
 )
 
 type Room struct {
-	Id        RoomId
-	Code      string
-	Status    RoomStatus
-	HostId    PlayerId
-	Players   map[PlayerId]*Player
-	Settings  Settings
-	CreatedAt time.Time
+	Id        shared.RoomId               `json:"id"`
+	Code      string                      `json:"code"`
+	Status    RoomStatus                  `json:"status"`
+	HostId    shared.PlayerId             `json:"host_id"`
+	Players   map[shared.PlayerId]*Player `json:"players"`
+	Settings  Settings                    `json:"settings"`
+	CreatedAt time.Time                   `json:"created_at"`
 }
 
-func NewRoom(id RoomId, code string, host *Player) *Room {
+func NewRoom(id shared.RoomId, code string, host *Player) *Room {
 	r := &Room{
 		Id:        id,
 		Code:      code,
 		Status:    StatusSetuping,
 		HostId:    host.Id,
-		Players:   make(map[PlayerId]*Player),
+		Players:   make(map[shared.PlayerId]*Player),
 		Settings:  Settings{MaxPlayers: 10},
 		CreatedAt: time.Now(),
 	}
@@ -50,7 +51,7 @@ func (r *Room) Join(player *Player) error {
 	return nil
 }
 
-func (r *Room) Leave(playerId PlayerId) error {
+func (r *Room) Leave(playerId shared.PlayerId) error {
 	if _, ok := r.Players[playerId]; !ok {
 		return ErrPlayerNotFound
 	}
@@ -66,7 +67,7 @@ func (r *Room) Leave(playerId PlayerId) error {
 	return nil
 }
 
-func (r *Room) StartGame(playerId PlayerId) error {
+func (r *Room) StartGame(playerId shared.PlayerId) error {
 	if !r.IsHost(playerId) {
 		return ErrPlayerNotHost
 	}
@@ -79,6 +80,6 @@ func (r *Room) StartGame(playerId PlayerId) error {
 	return nil
 }
 
-func (r *Room) IsHost(playerId PlayerId) bool {
+func (r *Room) IsHost(playerId shared.PlayerId) bool {
 	return playerId == r.HostId
 }

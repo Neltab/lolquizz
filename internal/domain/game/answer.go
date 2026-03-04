@@ -1,13 +1,12 @@
 package game
 
 import (
+	"lolquizz/internal/domain/shared"
 	"time"
-
-	"lolquizz/internal/domain/room"
 )
 
 type Answer struct {
-	PlayerId     room.PlayerId
+	PlayerId     shared.PlayerId
 	Answer       string
 	timeAnswered time.Time
 }

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"lolquizz/internal/domain/room"
+	"lolquizz/internal/domain/shared"
 
 	"github.com/gorilla/websocket"
 )
@@ -21,11 +21,11 @@ type Client struct {
 	hub      *Hub
 	conn     *websocket.Conn
 	send     chan []byte
-	playerId room.PlayerId
-	roomId   room.RoomId
+	playerId shared.PlayerId
+	roomId   shared.RoomId
 }
 
-func NewClient(hub *Hub, conn *websocket.Conn, playerId room.PlayerId) *Client {
+func NewClient(hub *Hub, conn *websocket.Conn, playerId shared.PlayerId) *Client {
 	return &Client{
 		hub:      hub,
 		conn:     conn,

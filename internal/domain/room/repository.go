@@ -1,10 +1,13 @@
 package room
 
-import "context"
+import (
+	"context"
+	"lolquizz/internal/domain/shared"
+)
 
 type Repository interface {
-	FindById(ctx context.Context, id RoomId) (*Room, error)
+	FindById(ctx context.Context, id shared.RoomId) (*Room, error)
 	FindByCode(ctx context.Context, code string) (*Room, error)
 	Save(ctx context.Context, room *Room) error
-	Delete(ctx context.Context, id RoomId) error
+	Delete(ctx context.Context, id shared.RoomId) error
 }

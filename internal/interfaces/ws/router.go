@@ -12,10 +12,11 @@ type Router struct {
 	hub         *Hub
 }
 
-func NewRouter(roomService *application.RoomService, gameService *application.GameService) *Router {
+func NewRouter(hub *Hub, roomService *application.RoomService, gameService *application.GameService) *Router {
 	return &Router{
 		roomService: roomService,
 		gameService: gameService,
+		hub:         hub,
 	}
 }
 
