@@ -33,12 +33,12 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.Handle("POST /api/rooms", roomHandler.CreateRoom)
-	mux.Handle("GET /api/rooms/{code}", roomHandler.GetRoom)
+	mux.HandleFunc("POST /api/rooms", roomHandler.CreateRoom)
+	mux.HandleFunc("GET /api/rooms/{code}", roomHandler.GetRoom)
 
 	mux.HandleFunc("/ws", httpPkg.HandleWebsocket(hub, wsRouter))
 
-	mux.HandleFunc("/", httpPkg.SPAHandler("./dist"))
+	mux.HandleFunc("/", httpPkg.SPAHandler("./web/dist"))
 
 	var handler http.Handler = mux
 	handler = httpPkg.LoggingMiddleware(handler)
