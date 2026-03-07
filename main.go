@@ -26,6 +26,7 @@ func main() {
 
 	roomService := application.NewRoomService(roomRepo, hub, idGen)
 	gameService := application.NewGameService(roomRepo, hub, questionRepo, idGen)
+	tokenService := application.NewSessionService(cfg.SessionTTL)
 
 	roomHandler := httpPkg.NewRoomHandler(roomService)
 
@@ -36,7 +37,7 @@ func main() {
 	mux.HandleFunc("POST /api/rooms", roomHandler.CreateRoom)
 	mux.HandleFunc("GET /api/rooms/{code}", roomHandler.GetRoom)
 
-	mux.HandleFunc("/ws", httpPkg.HandleWebsocket(hub, wsRouter))
+	mux.HandleFunc("/ws", httpPkg.HandleWebsocket(hub, wsRouter, tokenService))
 
 	mux.HandleFunc("/", httpPkg.SPAHandler("./web/dist"))
 

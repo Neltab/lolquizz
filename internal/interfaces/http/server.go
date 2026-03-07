@@ -2,6 +2,7 @@ package http
 
 import (
 	"log"
+	"lolquizz/internal/application"
 	"lolquizz/internal/domain/shared"
 	"lolquizz/internal/interfaces/ws"
 	"net/http"
@@ -17,7 +18,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func HandleWebsocket(hub *ws.Hub, router *ws.Router) http.HandlerFunc {
+func HandleWebsocket(hub *ws.Hub, router *ws.Router, tokens *application.SessionService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("WS request: path=%s query=%s", r.URL.Path, r.URL.RawQuery)
 		playerId := shared.PlayerId(r.URL.Query().Get("player_id"))
