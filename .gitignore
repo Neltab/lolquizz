@@ -22,3 +22,6 @@ go.work
 
 # MacOS files
 .DS_Store
+
+web/node_modules
+web/dist
