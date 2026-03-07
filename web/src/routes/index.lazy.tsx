@@ -1,45 +1,27 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import WsDebug from "../../components/ws-debug";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { useCreateRoom } from "@/lib/api/room";
 
 export const Route = createLazyFileRoute("/")({
 	component: Index,
 });
 
 function Index() {
-	const [message, setMessage] = useState("");
-    const [socket, setSocket] = useState<WebSocket | null>(null);
 
-    useEffect(() => {
-        const socket = new WebSocket("ws://localhost:8080/ws")
-        setSocket(socket)
+    const [nickname, setNickname] = useState("");
+    const { mutateAsync: createRoom } = useCreateRoom();
 
-        // Connection opened
-        socket.addEventListener("open", () => {
-            socket.send("Connection established")
-        });
-    
-        // Listen for messages
-        socket.addEventListener("message", event => {
-            console.log("Message from server ", event.data)
-        });
-	}, []);
-
-
-	useEffect(() => {
-		fetch("/api/ping")
-			.then((res) => res.text())
-			.then((data) => setMessage(data))
-			.catch((err) => console.error(err));
-	}, []);
-
-    const handleClick = () => {
-        socket?.send("Hello from client")
+    const handleCreateRoom = async () => {
+        const data = await createRoom(nickname);
+        console.log(data);
     }
 
 	return (
 		<div>
-			<WsDebug />
+            <Input onChange={(e) => setNickname(e.target.value)} placeholder="Nickname" />
+			<Button disabled={!nickname} onClick={handleCreateRoom}>Hello</Button>
 		</div>
 	);
 }

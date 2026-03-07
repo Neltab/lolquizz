@@ -118,10 +118,29 @@ function LogEntry({ entry }) {
   );
 }
 
-function ConnectionBar({ status, url, setUrl, playerID, setPlayerID, onConnect, onDisconnect }) {
+function ConnectionBar({ status, url, setUrl, apiBase, setApiBase, playerID, setPlayerID, onConnect, onDisconnect, onCreateRoom, lastRoomCode }) {
   const isConnected = status === "connected";
   const statusColor =
     status === "connected" ? "#4ade80" : status === "connecting" ? "#facc15" : "#666";
+
+  const inputStyle = (disabled) => ({
+    background: disabled ? "#0a0a0f" : "#0f0f18",
+    border: "1px solid #1a1a25",
+    borderRadius: "6px",
+    color: disabled ? "#666" : "#ddd",
+    padding: "8px 12px",
+    fontFamily: "'IBM Plex Mono', monospace",
+    fontSize: "13px",
+    outline: "none",
+  });
+
+  const labelStyle = {
+    fontSize: "9px",
+    color: "#555",
+    textTransform: "uppercase",
+    letterSpacing: "0.1em",
+    marginBottom: "4px",
+  };
 
   return (
     <div
@@ -130,11 +149,75 @@ function ConnectionBar({ status, url, setUrl, playerID, setPlayerID, onConnect, 
         borderBottom: "1px solid #1a1a25",
         display: "flex",
         flexDirection: "column",
-        gap: "10px",
+        gap: "12px",
         background: "#08080d",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+      {/* Row 1: API base + Create Room */}
+      <div style={{ display: "flex", alignItems: "flex-end", gap: "12px" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <div style={labelStyle}>API Base</div>
+          <input
+            type="text"
+            value={apiBase}
+            onChange={(e) => setApiBase(e.target.value)}
+            placeholder="http://localhost:8080"
+            style={{ ...inputStyle(false), width: "100%" }}
+          />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={labelStyle}>Player ID</div>
+          <input
+            type="text"
+            value={playerID}
+            onChange={(e) => setPlayerID(e.target.value)}
+            disabled={isConnected}
+            placeholder="player_id"
+            style={{ ...inputStyle(isConnected), width: "140px" }}
+          />
+        </div>
+        <button
+          onClick={onCreateRoom}
+          style={{
+            padding: "8px 16px",
+            borderRadius: "6px",
+            border: "1px solid #2d2d5a",
+            background: "#1a1a2f",
+            color: "#8f9fcf",
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontWeight: 600,
+            fontSize: "11px",
+            cursor: "pointer",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            flexShrink: 0,
+            whiteSpace: "nowrap",
+          }}
+        >
+          + Create Room
+        </button>
+        {lastRoomCode && (
+          <div
+            style={{
+              padding: "8px 14px",
+              borderRadius: "6px",
+              background: "#1a2f1a",
+              border: "1px solid #2d5a2d",
+              color: "#6fcf6f",
+              fontFamily: "'IBM Plex Mono', monospace",
+              fontWeight: 700,
+              fontSize: "14px",
+              letterSpacing: "0.15em",
+              flexShrink: 0,
+            }}
+          >
+            {lastRoomCode}
+          </div>
+        )}
+      </div>
+
+      {/* Row 2: WebSocket URL + Connect */}
+      <div style={{ display: "flex", alignItems: "flex-end", gap: "12px" }}>
         <div
           style={{
             width: "8px",
@@ -143,44 +226,20 @@ function ConnectionBar({ status, url, setUrl, playerID, setPlayerID, onConnect, 
             background: statusColor,
             boxShadow: isConnected ? `0 0 8px ${statusColor}` : "none",
             flexShrink: 0,
+            marginBottom: "8px",
           }}
         />
-        <input
-          type="text"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          disabled={isConnected}
-          placeholder="ws://localhost:8080/ws"
-          style={{
-            flex: 1,
-            background: isConnected ? "#0a0a0f" : "#0f0f18",
-            border: "1px solid #1a1a25",
-            borderRadius: "6px",
-            color: isConnected ? "#666" : "#ddd",
-            padding: "8px 12px",
-            fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: "13px",
-            outline: "none",
-          }}
-        />
-        <input
-          type="text"
-          value={playerID}
-          onChange={(e) => setPlayerID(e.target.value)}
-          disabled={isConnected}
-          placeholder="player_id"
-          style={{
-            width: "140px",
-            background: isConnected ? "#0a0a0f" : "#0f0f18",
-            border: "1px solid #1a1a25",
-            borderRadius: "6px",
-            color: isConnected ? "#666" : "#ddd",
-            padding: "8px 12px",
-            fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: "13px",
-            outline: "none",
-          }}
-        />
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <div style={labelStyle}>WebSocket URL</div>
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            disabled={isConnected}
+            placeholder="ws://localhost:8080/ws"
+            style={{ ...inputStyle(isConnected), width: "100%" }}
+          />
+        </div>
         <button
           onClick={isConnected ? onDisconnect : onConnect}
           style={{
@@ -205,7 +264,7 @@ function ConnectionBar({ status, url, setUrl, playerID, setPlayerID, onConnect, 
   );
 }
 
-function MessageComposer({ onSend, connected }) {
+function MessageComposer({ onSend, connected, lastRoomCode }) {
   const [selectedType, setSelectedType] = useState("join_room");
   const [payload, setPayload] = useState(
     JSON.stringify(MESSAGE_TEMPLATES["join_room"], null, 2)
@@ -213,9 +272,30 @@ function MessageComposer({ onSend, connected }) {
   const [rawMode, setRawMode] = useState(false);
   const [rawMessage, setRawMessage] = useState('{"type":"ping"}');
 
+  // Auto-fill room code when a room is created
+  useEffect(() => {
+    if (lastRoomCode && selectedType === "join_room") {
+      try {
+        const current = JSON.parse(payload);
+        current.room_code = lastRoomCode;
+        setPayload(JSON.stringify(current, null, 2));
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }, [lastRoomCode]);
+
+  const getTemplate = (type) => {
+    const tmpl = { ...MESSAGE_TEMPLATES[type] };
+    if (type === "join_room" && lastRoomCode) {
+      tmpl.room_code = lastRoomCode;
+    }
+    return tmpl;
+  };
+
   const handleTypeChange = (type) => {
     setSelectedType(type);
-    setPayload(JSON.stringify(MESSAGE_TEMPLATES[type], null, 2));
+    setPayload(JSON.stringify(getTemplate(type), null, 2));
   };
 
   const handleSend = () => {
@@ -344,15 +424,37 @@ function MessageComposer({ onSend, connected }) {
 
 export default function WSDebug() {
   const [url, setUrl] = useState("ws://localhost:8080/ws");
+  const [apiBase, setApiBase] = useState("http://localhost:8080");
   const [playerID, setPlayerID] = useState(() => crypto.randomUUID().slice(0, 8));
   const [status, setStatus] = useState("disconnected");
   const [logs, setLogs] = useState([]);
+  const [lastRoomCode, setLastRoomCode] = useState(null);
   const wsRef = useRef(null);
   const logEndRef = useRef(null);
 
   const addLog = useCallback((tag, data) => {
     setLogs((prev) => [...prev, { tag, data, time: new Date(), id: Date.now() + Math.random() }]);
   }, []);
+
+  const createRoom = async () => {
+    addLog("system", `POST ${apiBase}/api/rooms`);
+    try {
+      const res = await fetch(`${apiBase}/api/rooms`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ player_id: playerID, nickname: `Player_${playerID}` }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setLastRoomCode(data.code);
+        addLog("received", JSON.stringify(data));
+      } else {
+        addLog("error", JSON.stringify(data));
+      }
+    } catch (err) {
+      addLog("error", `Request failed: ${err.message}`);
+    }
+  };
 
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -470,10 +572,14 @@ export default function WSDebug() {
         status={status}
         url={url}
         setUrl={setUrl}
+        apiBase={apiBase}
+        setApiBase={setApiBase}
         playerID={playerID}
         setPlayerID={setPlayerID}
         onConnect={connect}
         onDisconnect={disconnect}
+        onCreateRoom={createRoom}
+        lastRoomCode={lastRoomCode}
       />
 
       {/* Log area */}
@@ -507,7 +613,7 @@ export default function WSDebug() {
         <div ref={logEndRef} />
       </div>
 
-      <MessageComposer onSend={send} connected={status === "connected"} />
+      <MessageComposer onSend={send} connected={status === "connected"} lastRoomCode={lastRoomCode} />
     </div>
   );
 }

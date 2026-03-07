@@ -8,6 +8,8 @@ import (
 	"lolquizz/internal/domain/shared"
 	"math/big"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 type RoomService struct {
@@ -25,11 +27,13 @@ func NewRoomService(rooms room.Repository, events EventPublisher, idGen func() s
 	}
 }
 
-func (s *RoomService) CreateRoom(ctx context.Context, hostId shared.PlayerId, hostName string) (*room.Room, error) {
+func (s *RoomService) CreateRoom(ctx context.Context, hostName string) (*room.Room, error) {
 	code, err := s.generateUniqueCode(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("generate room code: %w", err)
 	}
+
+	hostId := shared.PlayerId(uuid.New().String())
 
 	host := room.NewPlayer(hostId, hostName)
 	r := room.NewRoom(shared.RoomId(code), code, host)

@@ -3,7 +3,6 @@ package http
 import (
 	"encoding/json"
 	"lolquizz/internal/application"
-	"lolquizz/internal/domain/shared"
 	"net/http"
 )
 
@@ -19,15 +18,14 @@ func NewRoomHandler(service *application.RoomService) *RoomHandler {
 
 func (h *RoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		PlayerId shared.PlayerId `json:"player_id"`
-		Nickname string          `json:"nickname"`
+		Nickname string `json:"nickname"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	room, err := h.service.CreateRoom(r.Context(), req.PlayerId, req.Nickname)
+	room, err := h.service.CreateRoom(r.Context(), req.Nickname)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
