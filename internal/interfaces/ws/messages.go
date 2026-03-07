@@ -3,8 +3,8 @@ package ws
 import "encoding/json"
 
 type IncomingMessage struct {
-	Type string          `json:"type"`
-	Data json.RawMessage `json:"data"`
+	Type    string          `json:"type"`
+	Payload json.RawMessage `json:"payload"`
 }
 
 type OutgoingMessage struct {

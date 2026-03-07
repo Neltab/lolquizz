@@ -25,7 +25,7 @@ func (r *Router) Handle(client *Client, msg IncomingMessage) {
 
 	switch msg.Type {
 	case MsgJoinRoom:
-		r.handleJoinRoom(ctx, client, msg.Data)
+		r.handleJoinRoom(ctx, client, msg.Payload)
 	// case MsgLeaveRoom:
 	// 	r.handleLeaveRoom(client, msg)
 	// case MsgUpdateSettings:
