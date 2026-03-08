@@ -7,6 +7,5 @@ import (
 
 type Session struct {
 	PlayerId  shared.PlayerId
-	Nickname  string
 	ExpiresAt time.Time
 }

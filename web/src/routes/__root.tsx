@@ -1,9 +1,11 @@
 import { Link, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 import React from "react";
 import { QueryClient } from "@tanstack/react-query";
+import type { GameState } from "../App";
 
 interface RouterContext {
-  queryClient: QueryClient
+	gameState : GameState
+  	queryClient: QueryClient
 }
 
 const TanStackRouterDevtools =

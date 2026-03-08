@@ -27,7 +27,7 @@ func NewSessionService(ttl time.Duration) *SessionService {
 	}
 }
 
-func (s *SessionService) Create(playerId shared.PlayerId, nickname string) (string, error) {
+func (s *SessionService) Create(playerId shared.PlayerId) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -36,7 +36,6 @@ func (s *SessionService) Create(playerId shared.PlayerId, nickname string) (stri
 
 	s.sessions[token] = session.Session{
 		PlayerId:  playerId,
-		Nickname:  nickname,
 		ExpiresAt: expiresAt,
 	}
 

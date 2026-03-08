@@ -7,17 +7,20 @@ import (
 )
 
 type RoomHandler struct {
-	service *application.RoomService
+	roomService    *application.RoomService
+	sessionService *application.SessionService
 }
 
-func NewRoomHandler(service *application.RoomService) *RoomHandler {
+func NewRoomHandler(roomService *application.RoomService, sessionService *application.SessionService) *RoomHandler {
 	return &RoomHandler{
-		service: service,
+		roomService:    roomService,
+		sessionService: sessionService,
 	}
 }
 
 func (h *RoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	var req struct {
+		Token    string `json:"token"`
 		Nickname string `json:"nickname"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -25,7 +28,13 @@ func (h *RoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	room, err := h.service.CreateRoom(r.Context(), req.Nickname)
+	session, err := h.sessionService.Validate(req.Token)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	room, err := h.roomService.CreateRoom(r.Context(), session.PlayerId, req.Nickname)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -34,15 +43,15 @@ func (h *RoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"room_id": room.Id,
 		"code":    room.Code,
+		"is_host": true,
 	})
 }
 
 func (h *RoomHandler) GetRoom(w http.ResponseWriter, r *http.Request) {
 	code := r.PathValue("code")
 
-	room, err := h.service.GetRoom(r.Context(), code)
+	room, err := h.roomService.GetRoom(r.Context(), code)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

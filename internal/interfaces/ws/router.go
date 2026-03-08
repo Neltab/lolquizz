@@ -3,6 +3,7 @@ package ws
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"lolquizz/internal/application"
 )
 
@@ -22,6 +23,8 @@ func NewRouter(hub *Hub, roomService *application.RoomService, gameService *appl
 
 func (r *Router) Handle(client *Client, msg IncomingMessage) {
 	ctx := context.Background() //TODO: use context from client
+
+	log.Printf("WS message: %s", msg.Type)
 
 	switch msg.Type {
 	case MsgJoinRoom:

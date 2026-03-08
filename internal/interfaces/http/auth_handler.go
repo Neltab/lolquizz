@@ -3,29 +3,25 @@ package http
 import (
 	"encoding/json"
 	"lolquizz/internal/application"
+	"lolquizz/internal/domain/shared"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 type AuthHandler struct {
-	sessions application.SessionService
+	sessions *application.SessionService
 }
 
-func NewAuthHandler(sessions application.SessionService) *AuthHandler {
+func NewAuthHandler(sessions *application.SessionService) *AuthHandler {
 	return &AuthHandler{
 		sessions: sessions,
 	}
 }
 
 func (h *AuthHandler) CreateSession(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Nickname string `json:"nickname"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	token, err := h.sessions.Create(playerId, req.Nickname)
+	playerId := shared.PlayerId(uuid.New().String())
+	token, err := h.sessions.Create(playerId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

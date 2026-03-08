@@ -1,21 +1,43 @@
-import { useEffect, useState } from "react";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { useState } from "react";
+import { routeTree } from "./routeTree.gen";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-function App() {
-	const [message, setMessage] = useState("");
+const queryClient = new QueryClient();
+const router = createRouter({
+  routeTree,
+  context: undefined!,
+});
 
-	useEffect(() => {
-		fetch("/api/ping")
-			.then((res) => res.text())
-			.then((data) => setMessage(data))
-			.catch((err) => console.error(err));
-	}, []);
-
-	return (
-		<div className="bg-gray-900 text-gray-200 min-h-screen flex flex-col gap-6 justify-center items-center">
-			<h1 className="font-bold text-5xl">Go + React</h1>
-			<p>Backend says: {message}</p>
-		</div>
-	);
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
 }
 
-export default App;
+export interface GameState {
+  token: string | null;
+  isHost: boolean;
+  nickname: string;
+  setToken: (token: string | null) => void;
+  setIsHost: (isHost: boolean) => void;
+  setNickname: (nickname: string) => void;
+}
+
+export default function App() {
+  const [token, setToken] = useState<string | null>(null);
+  const [isHost, setIsHost] = useState(false);
+  const [nickname, setNickname] = useState("");
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider
+        router={router}
+        context={{
+          queryClient,
+          gameState: { token, isHost, nickname, setToken, setIsHost, setNickname },
+        }}
+      />
+    </QueryClientProvider>
+  );
+}

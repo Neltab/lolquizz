@@ -3,7 +3,6 @@ package http
 import (
 	"log"
 	"lolquizz/internal/application"
-	"lolquizz/internal/domain/shared"
 	"lolquizz/internal/interfaces/ws"
 	"net/http"
 
@@ -18,14 +17,23 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func HandleWebsocket(hub *ws.Hub, router *ws.Router, tokens *application.SessionService) http.HandlerFunc {
+func HandleWebsocket(hub *ws.Hub, router *ws.Router, sessions *application.SessionService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("WS request: path=%s query=%s", r.URL.Path, r.URL.RawQuery)
-		playerId := shared.PlayerId(r.URL.Query().Get("player_id"))
-		if playerId == "" {
-			http.Error(w, "playerId is required", http.StatusBadRequest)
+		token := r.URL.Query().Get("token")
+		log.Printf("WS upgrade: token=%q", token)
+		if token == "" {
+			http.Error(w, "token is required", http.StatusBadRequest)
 			return
 		}
+
+		session, err := sessions.Validate(token)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		log.Printf("WS upgrading for player %s", session.PlayerId)
 
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
@@ -33,7 +41,9 @@ func HandleWebsocket(hub *ws.Hub, router *ws.Router, tokens *application.Session
 			return
 		}
 
-		client := ws.NewClient(hub, conn, playerId)
+		log.Printf("WS connected: player %s", session.PlayerId)
+
+		client := ws.NewClient(hub, conn, session.PlayerId)
 		hub.Register(client)
 
 		go client.WritePump()

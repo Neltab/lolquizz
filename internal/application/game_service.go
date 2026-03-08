@@ -4,16 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"lolquizz/internal/domain/event"
 	"lolquizz/internal/domain/game"
 	"lolquizz/internal/domain/room"
 	"lolquizz/internal/domain/shared"
+	"lolquizz/internal/infrastructure/bus"
 )
-
-type EventPublisher interface {
-	PublishToRoom(roomId shared.RoomId, event event.Event)
-	PublishToPlayer(playerId shared.PlayerId, event event.Event)
-}
 
 type QuestionProvider interface {
 	GetQuestions(ctx context.Context, count int) ([]*game.Question, error)
@@ -23,17 +18,17 @@ type GameService struct {
 	rooms     room.Repository
 	games     map[shared.GameId]*game.Game
 	roomGames map[shared.RoomId]shared.GameId
-	events    EventPublisher
+	eventBus  bus.EventBus
 	questions QuestionProvider
 	idGen     func() string
 }
 
-func NewGameService(rooms room.Repository, events EventPublisher, questions QuestionProvider, idGen func() string) *GameService {
+func NewGameService(rooms room.Repository, events bus.EventBus, questions QuestionProvider, idGen func() string) *GameService {
 	return &GameService{
 		rooms:     rooms,
 		games:     make(map[shared.GameId]*game.Game),
 		roomGames: make(map[shared.RoomId]shared.GameId),
-		events:    events,
+		eventBus:  events,
 		questions: questions,
 		idGen:     idGen,
 	}
@@ -67,12 +62,13 @@ func (s *GameService) StartGame(ctx context.Context, roomId shared.RoomId, hostI
 		return fmt.Errorf("save room: %w", err)
 	}
 
-	question := g.CurrentQuestion()
-	s.events.PublishToRoom(roomId, &game.QuestionStartedEvent{
-		RoomId:       roomId,
-		QuestionText: question.Text,
-		Duration:     question.Duration,
-	})
+	//TODO rework
+	// question := g.CurrentQuestion()
+	// s.eventBus.PublishToRoom(roomId, &game.QuestionStartedEvent{
+	// 	RoomId:       roomId,
+	// 	QuestionText: question.Text,
+	// 	Duration:     question.Duration,
+	// })
 
 	return nil
 }

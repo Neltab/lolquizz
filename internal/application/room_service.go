@@ -6,36 +6,33 @@ import (
 	"fmt"
 	"lolquizz/internal/domain/room"
 	"lolquizz/internal/domain/shared"
+	"lolquizz/internal/infrastructure/bus"
 	"math/big"
 	"sync"
-
-	"github.com/google/uuid"
 )
 
 type RoomService struct {
-	rooms  room.Repository
-	events EventPublisher
-	idGen  func() string
-	mu     sync.Mutex
+	rooms    room.Repository
+	eventBus *bus.EventBus
+	idGen    func() string
+	mu       sync.Mutex
 }
 
-func NewRoomService(rooms room.Repository, events EventPublisher, idGen func() string) *RoomService {
+func NewRoomService(rooms room.Repository, events *bus.EventBus, idGen func() string) *RoomService {
 	return &RoomService{
-		rooms:  rooms,
-		events: events,
-		idGen:  idGen,
+		rooms:    rooms,
+		eventBus: events,
+		idGen:    idGen,
 	}
 }
 
-func (s *RoomService) CreateRoom(ctx context.Context, hostName string) (*room.Room, error) {
+func (s *RoomService) CreateRoom(ctx context.Context, hostId shared.PlayerId, hostName string) (*room.Room, error) {
 	code, err := s.generateUniqueCode(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("generate room code: %w", err)
 	}
 
-	hostId := shared.PlayerId(uuid.New().String())
-
-	host := room.NewPlayer(hostId, hostName)
+	host := room.NewPlayer(hostId, hostName, true)
 	r := room.NewRoom(shared.RoomId(code), code, host)
 
 	if err := s.rooms.Save(ctx, r); err != nil {
@@ -51,7 +48,7 @@ func (s *RoomService) JoinRoom(ctx context.Context, code string, playerId shared
 		return nil, fmt.Errorf("find room: %w", err)
 	}
 
-	player := room.NewPlayer(playerId, playerName)
+	player := room.NewPlayer(playerId, playerName, false)
 	if err := r.Join(player); err != nil {
 		return nil, fmt.Errorf("join room: %w", err)
 	}
@@ -60,9 +57,10 @@ func (s *RoomService) JoinRoom(ctx context.Context, code string, playerId shared
 		return nil, fmt.Errorf("save room: %w", err)
 	}
 
-	s.events.PublishToRoom(r.Id, room.PlayerJoinedEvent{
+	s.eventBus.Publish(room.PlayerJoinedEvent{
 		RoomId: r.Id,
 		Player: player,
+		//Add roomstate
 	})
 
 	return r, nil
@@ -82,9 +80,10 @@ func (s *RoomService) LeaveRoom(ctx context.Context, code string, playerId share
 		return fmt.Errorf("save room: %w", err)
 	}
 
-	s.events.PublishToRoom(r.Id, room.PlayerLeftEvent{
+	s.eventBus.Publish(room.PlayerLeftEvent{
 		RoomId:  r.Id,
 		NewHost: r.HostId,
+		//Add roomstate
 	})
 
 	return nil
@@ -102,9 +101,10 @@ func (s *RoomService) UpdateSettings(ctx context.Context, roomId shared.RoomId, 
 		return fmt.Errorf("save room: %w", err)
 	}
 
-	s.events.PublishToRoom(r.Id, room.SettingsUpdatedEvent{
+	s.eventBus.Publish(room.SettingsUpdatedEvent{
 		RoomId:   r.Id,
 		Settings: settings,
+		//Add roomstate
 	})
 
 	return nil

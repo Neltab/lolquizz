@@ -2,6 +2,7 @@ package ws
 
 import (
 	"encoding/json"
+	"log"
 	"lolquizz/internal/domain/event"
 	"lolquizz/internal/domain/shared"
 	"sync"
@@ -86,6 +87,7 @@ func (h *Hub) BroadcastToRoom(roomID shared.RoomId, msg OutgoingMessage) {
 	playerIds := h.rooms[roomID]
 	for playerId := range playerIds {
 		if client, ok := h.clients[playerId]; ok {
+			log.Printf("WS broadcast to player %s", playerId)
 			select {
 			case client.send <- data:
 			default:
