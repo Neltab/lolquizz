@@ -2,14 +2,14 @@ import { useMutation } from '@tanstack/react-query'
 
 type CreateRoomParams = {
     token: string
-    nickname: string
+    playerName: string
 }
 
-const createRoom = async ({token, nickname} : CreateRoomParams) => {
+const createRoom = async ({token, playerName} : CreateRoomParams) => {
 	const res = await fetch(`/api/rooms`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ token, nickname }),
+		body: JSON.stringify({ token, playerName }),
 	});
 	const data = await res.json();
 	if (res.ok) {

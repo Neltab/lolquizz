@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"log"
 	"lolquizz/internal/application"
+	"lolquizz/internal/domain/event"
+	"lolquizz/internal/domain/room"
+	"lolquizz/internal/infrastructure/bus"
 )
 
 type Router struct {
@@ -13,12 +16,19 @@ type Router struct {
 	hub         *Hub
 }
 
-func NewRouter(hub *Hub, roomService *application.RoomService, gameService *application.GameService) *Router {
-	return &Router{
+func NewRouter(hub *Hub, roomService *application.RoomService, gameService *application.GameService, eventBus *bus.EventBus) *Router {
+	r := &Router{
 		roomService: roomService,
 		gameService: gameService,
 		hub:         hub,
 	}
+
+	eventBus.Subscribe("player_joined", func(e event.Event) {
+		ev := e.(room.PlayerJoinedEvent)
+		r.hub.PublishToRoom(ev.RoomId, ev)
+	})
+
+	return r
 }
 
 func (r *Router) Handle(client *Client, msg IncomingMessage) {

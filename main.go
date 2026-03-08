@@ -4,6 +4,7 @@ import (
 	"log"
 	"lolquizz/internal/application"
 	"lolquizz/internal/config"
+	"lolquizz/internal/infrastructure/bus"
 	"lolquizz/internal/infrastructure/memory"
 	"lolquizz/internal/interfaces/ws"
 	"net/http"
@@ -22,16 +23,18 @@ func main() {
 	hub := ws.NewHub()
 	go hub.Run()
 
+	eventBus := bus.NewEventBus()
+
 	idGen := func() string { return uuid.New().String() }
 
-	roomService := application.NewRoomService(roomRepo, hub, idGen)
-	gameService := application.NewGameService(roomRepo, hub, questionRepo, idGen)
+	roomService := application.NewRoomService(roomRepo, eventBus, idGen)
+	gameService := application.NewGameService(roomRepo, eventBus, questionRepo, idGen)
 	sessionService := application.NewSessionService(cfg.SessionTTL)
 
 	authHandler := httpPkg.NewAuthHandler(sessionService)
 	roomHandler := httpPkg.NewRoomHandler(roomService, sessionService)
 
-	wsRouter := ws.NewRouter(hub, roomService, gameService)
+	wsRouter := ws.NewRouter(hub, roomService, gameService, eventBus)
 
 	mux := http.NewServeMux()
 

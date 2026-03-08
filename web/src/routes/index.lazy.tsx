@@ -11,7 +11,7 @@ export const Route = createLazyFileRoute("/")({
 
 function Index() {
     const { gameState } = Route.useRouteContext();
-    const [nickname, setNickname] = useState("");
+    const [playerName, setplayerName] = useState("");
     const { mutateAsync: login } = useLogin();
     const { mutateAsync: createRoom } = useCreateRoom();
     const navigate = useNavigate()
@@ -20,8 +20,9 @@ function Index() {
     const handleCreateRoom = async () => {
         const { token } = await login();
         gameState.setToken(token);
+        gameState.setPlayerName(playerName);
 
-        const { code, is_host } = await createRoom({ token, nickname });
+        const { code, is_host } = await createRoom({ token, playerName });
         gameState.setIsHost(is_host);
         
         navigate({ to: '/room/$code', params: { code } });
@@ -29,8 +30,8 @@ function Index() {
 
 	return (
 		<div>
-            <Input onChange={(e) => setNickname(e.target.value)} placeholder="Nickname" />
-			<Button disabled={!nickname} onClick={handleCreateRoom}>Create</Button>
+            <Input onChange={(e) => setplayerName(e.target.value)} placeholder="playerName" />
+			<Button disabled={!playerName} onClick={handleCreateRoom}>Create</Button>
 		</div>
 	);
 }

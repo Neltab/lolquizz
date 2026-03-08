@@ -26,7 +26,7 @@ function RouteComponent() {
         socket.onOpen(() => {
             if (cancelled) return
             setConnected(true)
-            socket.send('join_room', { room_code: code, nickname: gameState.nickname })
+            socket.send('join_room', { room_code: code, player_name: gameState.playerName })
         })
 
         socket.onClose(() => {

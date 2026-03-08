@@ -18,16 +18,16 @@ declare module "@tanstack/react-router" {
 export interface GameState {
   token: string | null;
   isHost: boolean;
-  nickname: string;
+  playerName: string;
   setToken: (token: string | null) => void;
   setIsHost: (isHost: boolean) => void;
-  setNickname: (nickname: string) => void;
+  setPlayerName: (playerName: string) => void;
 }
 
 export default function App() {
   const [token, setToken] = useState<string | null>(null);
   const [isHost, setIsHost] = useState(false);
-  const [nickname, setNickname] = useState("");
+  const [playerName, setplayerName] = useState("");
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -35,7 +35,7 @@ export default function App() {
         router={router}
         context={{
           queryClient,
-          gameState: { token, isHost, nickname, setToken, setIsHost, setNickname },
+          gameState: { token, isHost, playerName: playerName, setToken, setIsHost, setPlayerName: setplayerName },
         }}
       />
     </QueryClientProvider>

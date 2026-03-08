@@ -20,8 +20,8 @@ func NewRoomHandler(roomService *application.RoomService, sessionService *applic
 
 func (h *RoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		Token    string `json:"token"`
-		Nickname string `json:"nickname"`
+		Token      string `json:"token"`
+		PlayerName string `json:"player_name"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -34,7 +34,7 @@ func (h *RoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	room, err := h.roomService.CreateRoom(r.Context(), session.PlayerId, req.Nickname)
+	room, err := h.roomService.CreateRoom(r.Context(), session.PlayerId, req.PlayerName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

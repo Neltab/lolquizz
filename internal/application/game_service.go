@@ -18,12 +18,12 @@ type GameService struct {
 	rooms     room.Repository
 	games     map[shared.GameId]*game.Game
 	roomGames map[shared.RoomId]shared.GameId
-	eventBus  bus.EventBus
+	eventBus  *bus.EventBus
 	questions QuestionProvider
 	idGen     func() string
 }
 
-func NewGameService(rooms room.Repository, events bus.EventBus, questions QuestionProvider, idGen func() string) *GameService {
+func NewGameService(rooms room.Repository, events *bus.EventBus, questions QuestionProvider, idGen func() string) *GameService {
 	return &GameService{
 		rooms:     rooms,
 		games:     make(map[shared.GameId]*game.Game),

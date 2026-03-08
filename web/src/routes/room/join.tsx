@@ -21,7 +21,7 @@ export const Route = createFileRoute('/room/join')({
 function RouteComponent() {
   const { code } = Route.useSearch()
   const { gameState } = Route.useRouteContext();
-  const [nickname, setNickname] = useState("");
+  const [playerName, setPlayerName] = useState("");
   const { mutateAsync: login } = useLogin();
   const navigate = useNavigate()
 
@@ -30,15 +30,15 @@ function RouteComponent() {
       const { token } = await login();
       gameState.setToken(token);
       gameState.setIsHost(false);
-      gameState.setNickname(nickname);
+      gameState.setPlayerName(playerName);
       
       navigate({ to: '/room/$code', params: { code } });
   }
 
   return (
     <div>
-            <Input onChange={(e) => setNickname(e.target.value)} placeholder="Nickname" />
-      <Button disabled={!nickname} onClick={handleJoinRoom}>Join</Button>
+            <Input onChange={(e) => setPlayerName(e.target.value)} placeholder="playerName" />
+      <Button disabled={!playerName} onClick={handleJoinRoom}>Join</Button>
     </div>
   );
 }

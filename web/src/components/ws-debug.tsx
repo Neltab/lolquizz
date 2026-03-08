@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
 const MESSAGE_TEMPLATES = {
-  join_room: { room_code: "ABCD", nickname: "Player1" },
+  join_room: { room_code: "ABCD", playerName: "Player1" },
   leave_room: {},
   update_settings: {
     question_count: 10,
@@ -442,7 +442,7 @@ export default function WSDebug() {
       const res = await fetch(`${apiBase}/api/rooms`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ player_id: playerID, nickname: `Player_${playerID}` }),
+        body: JSON.stringify({ player_id: playerID, playerName: `Player_${playerID}` }),
       });
       const data = await res.json();
       if (res.ok) {
