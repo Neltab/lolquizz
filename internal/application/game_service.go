@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"lolquizz/internal/domain/event"
 	"lolquizz/internal/domain/game"
 	"lolquizz/internal/domain/room"
-	"lolquizz/internal/domain/shared"
-	"lolquizz/internal/infrastructure/bus"
 )
 
 type QuestionProvider interface {
@@ -16,25 +15,25 @@ type QuestionProvider interface {
 
 type GameService struct {
 	rooms     room.Repository
-	games     map[shared.GameId]*game.Game
-	roomGames map[shared.RoomId]shared.GameId
-	eventBus  *bus.EventBus
+	games     map[game.GameId]*game.Game
+	roomGames map[game.RoomId]game.GameId
+	eventBus  event.Publisher
 	questions QuestionProvider
 	idGen     func() string
 }
 
-func NewGameService(rooms room.Repository, events *bus.EventBus, questions QuestionProvider, idGen func() string) *GameService {
+func NewGameService(rooms room.Repository, events event.Publisher, questions QuestionProvider, idGen func() string) *GameService {
 	return &GameService{
 		rooms:     rooms,
-		games:     make(map[shared.GameId]*game.Game),
-		roomGames: make(map[shared.RoomId]shared.GameId),
+		games:     make(map[game.GameId]*game.Game),
+		roomGames: make(map[game.RoomId]game.GameId),
 		eventBus:  events,
 		questions: questions,
 		idGen:     idGen,
 	}
 }
 
-func (s *GameService) StartGame(ctx context.Context, roomId shared.RoomId, hostId shared.PlayerId) error {
+func (s *GameService) StartGame(ctx context.Context, roomId game.RoomId, hostId game.PlayerId) error {
 	r, err := s.rooms.FindById(ctx, roomId)
 	if err != nil {
 		return fmt.Errorf("find room: %w", err)
@@ -50,7 +49,7 @@ func (s *GameService) StartGame(ctx context.Context, roomId shared.RoomId, hostI
 		return fmt.Errorf("get questions: %w", err)
 	}
 
-	g, err := game.NewGame(shared.GameId(s.idGen()), roomId, questions, settings)
+	g, err := game.NewGame(game.GameId(s.idGen()), roomId, questions, settings)
 	if err != nil {
 		return fmt.Errorf("create game: %w", err)
 	}

@@ -7,7 +7,6 @@ import (
 	"lolquizz/internal/application"
 	"lolquizz/internal/domain/event"
 	"lolquizz/internal/domain/room"
-	"lolquizz/internal/infrastructure/bus"
 )
 
 type Router struct {
@@ -16,7 +15,7 @@ type Router struct {
 	hub         *Hub
 }
 
-func NewRouter(hub *Hub, roomService *application.RoomService, gameService *application.GameService, eventBus *bus.EventBus) *Router {
+func NewRouter(hub *Hub, roomService *application.RoomService, gameService *application.GameService, eventBus event.Subscriber) *Router {
 	r := &Router{
 		roomService: roomService,
 		gameService: gameService,

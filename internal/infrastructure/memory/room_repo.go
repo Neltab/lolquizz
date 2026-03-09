@@ -4,22 +4,21 @@ import (
 	"context"
 	"fmt"
 	"lolquizz/internal/domain/room"
-	"lolquizz/internal/domain/shared"
 	"sync"
 )
 
 type RoomRepository struct {
-	rooms map[shared.RoomId]*room.Room
+	rooms map[room.RoomId]*room.Room
 	mu    sync.RWMutex
 }
 
 func NewRoomRepository() *RoomRepository {
 	return &RoomRepository{
-		rooms: make(map[shared.RoomId]*room.Room),
+		rooms: make(map[room.RoomId]*room.Room),
 	}
 }
 
-func (r *RoomRepository) FindById(ctx context.Context, id shared.RoomId) (*room.Room, error) {
+func (r *RoomRepository) FindById(ctx context.Context, id room.RoomId) (*room.Room, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -35,7 +34,7 @@ func (r *RoomRepository) FindByCode(ctx context.Context, code string) (*room.Roo
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	room, ok := r.rooms[shared.RoomId(code)]
+	room, ok := r.rooms[room.RoomId(code)]
 	if !ok {
 		return nil, fmt.Errorf("room %s not found", code)
 	}
@@ -51,7 +50,7 @@ func (r *RoomRepository) Save(ctx context.Context, room *room.Room) error {
 	return nil
 }
 
-func (r *RoomRepository) Delete(ctx context.Context, id shared.RoomId) error {
+func (r *RoomRepository) Delete(ctx context.Context, id room.RoomId) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

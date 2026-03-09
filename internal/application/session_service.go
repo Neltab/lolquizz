@@ -2,7 +2,6 @@ package application
 
 import (
 	"lolquizz/internal/domain/session"
-	"lolquizz/internal/domain/shared"
 	"math/rand"
 	"sync"
 	"time"
@@ -27,7 +26,7 @@ func NewSessionService(ttl time.Duration) *SessionService {
 	}
 }
 
-func (s *SessionService) Create(playerId shared.PlayerId) (string, error) {
+func (s *SessionService) Create(playerId session.PlayerId) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

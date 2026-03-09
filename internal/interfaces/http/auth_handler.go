@@ -3,7 +3,7 @@ package http
 import (
 	"encoding/json"
 	"lolquizz/internal/application"
-	"lolquizz/internal/domain/shared"
+	"lolquizz/internal/domain/session"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -20,7 +20,7 @@ func NewAuthHandler(sessions *application.SessionService) *AuthHandler {
 }
 
 func (h *AuthHandler) CreateSession(w http.ResponseWriter, r *http.Request) {
-	playerId := shared.PlayerId(uuid.New().String())
+	playerId := session.PlayerId(uuid.New().String())
 	token, err := h.sessions.Create(playerId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

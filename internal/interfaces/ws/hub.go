@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"log"
 	"lolquizz/internal/domain/event"
-	"lolquizz/internal/domain/shared"
 	"sync"
 )
 
+type playerId = string
+type roomId = string
+
 type Hub struct {
-	clients    map[shared.PlayerId]*Client
-	rooms      map[shared.RoomId]map[shared.PlayerId]bool
+	clients    map[playerId]*Client
+	rooms      map[roomId]map[playerId]bool
 	register   chan *Client
 	unregister chan *Client
 	mu         sync.RWMutex
@@ -18,9 +20,9 @@ type Hub struct {
 
 func NewHub() *Hub {
 	return &Hub{
-		clients: make(map[shared.PlayerId]*Client),
+		clients: make(map[playerId]*Client),
 		// Set of players in each room
-		rooms:      make(map[shared.RoomId]map[shared.PlayerId]bool),
+		rooms:      make(map[roomId]map[playerId]bool),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 	}
@@ -65,21 +67,21 @@ func (h *Hub) Unregister(client *Client) {
 	h.unregister <- client
 }
 
-func (h *Hub) AddToRoom(playerId shared.PlayerId, roomId shared.RoomId) {
+func (h *Hub) AddToRoom(pId playerId, roomId roomId) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
 	if h.rooms[roomId] == nil {
-		h.rooms[roomId] = make(map[shared.PlayerId]bool)
+		h.rooms[roomId] = make(map[playerId]bool)
 	}
-	h.rooms[roomId][playerId] = true
+	h.rooms[roomId][pId] = true
 
-	if client, ok := h.clients[playerId]; ok {
+	if client, ok := h.clients[pId]; ok {
 		client.roomId = roomId
 	}
 }
 
-func (h *Hub) BroadcastToRoom(roomID shared.RoomId, msg OutgoingMessage) {
+func (h *Hub) BroadcastToRoom(roomID roomId, msg OutgoingMessage) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
@@ -96,7 +98,7 @@ func (h *Hub) BroadcastToRoom(roomID shared.RoomId, msg OutgoingMessage) {
 	}
 }
 
-func (h *Hub) SendToPlayer(playerId shared.PlayerId, msg OutgoingMessage) {
+func (h *Hub) SendToPlayer(playerId playerId, msg OutgoingMessage) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
@@ -105,14 +107,14 @@ func (h *Hub) SendToPlayer(playerId shared.PlayerId, msg OutgoingMessage) {
 	}
 }
 
-func (h *Hub) PublishToRoom(roomId shared.RoomId, event event.Event) {
+func (h *Hub) PublishToRoom(roomId roomId, event event.Event) {
 	h.BroadcastToRoom(roomId, OutgoingMessage{
 		Type:    event.EventName(),
 		Payload: event,
 	})
 }
 
-func (h *Hub) PublishToPlayer(playerId shared.PlayerId, event event.Event) {
+func (h *Hub) PublishToPlayer(playerId playerId, event event.Event) {
 	h.SendToPlayer(playerId, OutgoingMessage{
 		Type:    event.EventName(),
 		Payload: event,

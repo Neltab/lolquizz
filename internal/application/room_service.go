@@ -4,21 +4,20 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"lolquizz/internal/domain/event"
 	"lolquizz/internal/domain/room"
-	"lolquizz/internal/domain/shared"
-	"lolquizz/internal/infrastructure/bus"
 	"math/big"
 	"sync"
 )
 
 type RoomService struct {
 	rooms    room.Repository
-	eventBus *bus.EventBus
+	eventBus event.Publisher
 	idGen    func() string
 	mu       sync.Mutex
 }
 
-func NewRoomService(rooms room.Repository, events *bus.EventBus, idGen func() string) *RoomService {
+func NewRoomService(rooms room.Repository, events event.Publisher, idGen func() string) *RoomService {
 	return &RoomService{
 		rooms:    rooms,
 		eventBus: events,
@@ -26,14 +25,14 @@ func NewRoomService(rooms room.Repository, events *bus.EventBus, idGen func() st
 	}
 }
 
-func (s *RoomService) CreateRoom(ctx context.Context, hostId shared.PlayerId, hostName string) (*room.Room, error) {
+func (s *RoomService) CreateRoom(ctx context.Context, hostId room.PlayerId, hostName string) (*room.Room, error) {
 	code, err := s.generateUniqueCode(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("generate room code: %w", err)
 	}
 
 	host := room.NewPlayer(hostId, hostName, true)
-	r := room.NewRoom(shared.RoomId(code), code, host)
+	r := room.NewRoom(room.RoomId(code), code, host)
 
 	if err := s.rooms.Save(ctx, r); err != nil {
 		return nil, fmt.Errorf("save room: %w", err)
@@ -42,7 +41,7 @@ func (s *RoomService) CreateRoom(ctx context.Context, hostId shared.PlayerId, ho
 	return r, nil
 }
 
-func (s *RoomService) JoinRoom(ctx context.Context, code string, playerId shared.PlayerId, playerName string) (*room.Room, error) {
+func (s *RoomService) JoinRoom(ctx context.Context, code string, playerId room.PlayerId, playerName string) (*room.Room, error) {
 	r, err := s.rooms.FindByCode(ctx, code)
 	if err != nil {
 		return nil, fmt.Errorf("find room: %w", err)
@@ -66,7 +65,7 @@ func (s *RoomService) JoinRoom(ctx context.Context, code string, playerId shared
 	return r, nil
 }
 
-func (s *RoomService) LeaveRoom(ctx context.Context, code string, playerId shared.PlayerId) error {
+func (s *RoomService) LeaveRoom(ctx context.Context, code string, playerId room.PlayerId) error {
 	r, err := s.rooms.FindByCode(ctx, code)
 	if err != nil {
 		return fmt.Errorf("find room: %w", err)
@@ -89,7 +88,7 @@ func (s *RoomService) LeaveRoom(ctx context.Context, code string, playerId share
 	return nil
 }
 
-func (s *RoomService) UpdateSettings(ctx context.Context, roomId shared.RoomId, settings room.Settings) error {
+func (s *RoomService) UpdateSettings(ctx context.Context, roomId room.RoomId, settings room.Settings) error {
 	r, err := s.rooms.FindById(ctx, roomId)
 	if err != nil {
 		return fmt.Errorf("find room: %w", err)
