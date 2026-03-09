@@ -6,7 +6,7 @@ import (
 	"log"
 	"lolquizz/internal/application"
 	"lolquizz/internal/domain/event"
-	"lolquizz/internal/domain/room"
+	"lolquizz/internal/dto"
 )
 
 type Router struct {
@@ -23,7 +23,7 @@ func NewRouter(hub *Hub, roomService *application.RoomService, gameService *appl
 	}
 
 	eventBus.Subscribe("player_joined", func(e event.Event) {
-		ev := e.(room.PlayerJoinedEvent)
+		ev := e.(dto.PlayerJoinedEvent)
 		r.hub.PublishToRoom(ev.RoomId, ev)
 	})
 

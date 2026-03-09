@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"lolquizz/internal/domain/event"
 	"lolquizz/internal/domain/room"
+	"lolquizz/internal/dto"
 	"math/big"
 	"sync"
 )
@@ -56,9 +57,9 @@ func (s *RoomService) JoinRoom(ctx context.Context, code string, playerId room.P
 		return nil, fmt.Errorf("save room: %w", err)
 	}
 
-	s.eventBus.Publish(room.PlayerJoinedEvent{
+	s.eventBus.Publish(PlayerJoinedEvent{
 		RoomId: r.Id,
-		Player: player,
+		Player: dto.FromPlayer(player),
 		//Add roomstate
 	})
 

@@ -1,6 +1,10 @@
 package ws
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"lolquizz/internal/domain/room"
+	"lolquizz/internal/dto"
+)
 
 type IncomingMessage struct {
 	Type    string          `json:"type"`
@@ -32,3 +36,24 @@ const (
 	MsgGameFinished    = "game_finished"
 	MsgError           = "error"
 )
+
+type PlayerJoinedEvent struct {
+	RoomId room.RoomId
+	Player dto.PlayerDTO
+}
+
+func (e PlayerJoinedEvent) EventName() string { return "player_joined" }
+
+type PlayerLeftEvent struct {
+	RoomId  room.RoomId
+	NewHost dto.PlayerDTO
+}
+
+func (e PlayerLeftEvent) EventName() string { return "player_left" }
+
+type SettingsUpdatedEvent struct {
+	RoomId   room.RoomId
+	Settings room.Settings
+}
+
+func (e SettingsUpdatedEvent) EventName() string { return "settings_updated" }
