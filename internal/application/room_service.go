@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"lolquizz/internal/domain/event"
 	"lolquizz/internal/domain/room"
-	"lolquizz/internal/dto"
 	"math/big"
 	"sync"
 )
@@ -57,10 +56,10 @@ func (s *RoomService) JoinRoom(ctx context.Context, code string, playerId room.P
 		return nil, fmt.Errorf("save room: %w", err)
 	}
 
-	s.eventBus.Publish(PlayerJoinedEvent{
+	s.eventBus.Publish(room.PlayerJoinedEvent{
 		RoomId: r.Id,
-		Player: dto.FromPlayer(player),
-		//Add roomstate
+		Player: player,
+		Room:   r,
 	})
 
 	return r, nil
@@ -72,6 +71,8 @@ func (s *RoomService) LeaveRoom(ctx context.Context, code string, playerId room.
 		return fmt.Errorf("find room: %w", err)
 	}
 
+	player := r.Players[playerId]
+
 	if err := r.Leave(playerId); err != nil {
 		return fmt.Errorf("leave room: %w", err)
 	}
@@ -81,15 +82,15 @@ func (s *RoomService) LeaveRoom(ctx context.Context, code string, playerId room.
 	}
 
 	s.eventBus.Publish(room.PlayerLeftEvent{
-		RoomId:  r.Id,
-		NewHost: r.HostId,
-		//Add roomstate
+		RoomId: r.Id,
+		Player: player,
+		Room:   r,
 	})
 
 	return nil
 }
 
-func (s *RoomService) UpdateSettings(ctx context.Context, roomId room.RoomId, settings room.Settings) error {
+func (s *RoomService) UpdateSettings(ctx context.Context, roomId room.RoomId, settings *room.Settings) error {
 	r, err := s.rooms.FindById(ctx, roomId)
 	if err != nil {
 		return fmt.Errorf("find room: %w", err)
@@ -104,7 +105,7 @@ func (s *RoomService) UpdateSettings(ctx context.Context, roomId room.RoomId, se
 	s.eventBus.Publish(room.SettingsUpdatedEvent{
 		RoomId:   r.Id,
 		Settings: settings,
-		//Add roomstate
+		Room:     r,
 	})
 
 	return nil

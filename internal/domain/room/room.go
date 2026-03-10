@@ -19,7 +19,7 @@ type Room struct {
 	Status    RoomStatus           `json:"status"`
 	HostId    PlayerId             `json:"host_id"`
 	Players   map[PlayerId]*Player `json:"players"`
-	Settings  Settings             `json:"settings"`
+	Settings  *Settings            `json:"settings"`
 	CreatedAt time.Time            `json:"created_at"`
 }
 
@@ -30,7 +30,7 @@ func NewRoom(id RoomId, code string, host *Player) *Room {
 		Status:    StatusSetuping,
 		HostId:    host.Id,
 		Players:   make(map[PlayerId]*Player),
-		Settings:  Settings{MaxPlayers: 10},
+		Settings:  &Settings{MaxPlayers: 10},
 		CreatedAt: time.Now(),
 	}
 	r.Players[host.Id] = host

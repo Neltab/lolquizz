@@ -24,7 +24,7 @@ type Game struct {
 	currentQuestion int
 }
 
-func NewGame(id GameId, roomId RoomId, questions []*Question, settings room.Settings) (*Game, error) {
+func NewGame(id GameId, roomId RoomId, questions []*Question, settings *room.Settings) (*Game, error) {
 	if len(questions) == 0 {
 		return nil, ErrNoQuestions
 	}

@@ -3,7 +3,6 @@ package ws
 import (
 	"encoding/json"
 	"log"
-	"lolquizz/internal/domain/event"
 	"sync"
 )
 
@@ -81,7 +80,7 @@ func (h *Hub) AddToRoom(pId playerId, roomId roomId) {
 	}
 }
 
-func (h *Hub) BroadcastToRoom(roomID roomId, msg OutgoingMessage) {
+func (h *Hub) PublishToRoom(roomID roomId, msg OutgoingMessage) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
@@ -98,25 +97,11 @@ func (h *Hub) BroadcastToRoom(roomID roomId, msg OutgoingMessage) {
 	}
 }
 
-func (h *Hub) SendToPlayer(playerId playerId, msg OutgoingMessage) {
+func (h *Hub) PublishToPlayer(playerId playerId, msg OutgoingMessage) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
 	if client, ok := h.clients[playerId]; ok {
 		client.SendJson(msg)
 	}
-}
-
-func (h *Hub) PublishToRoom(roomId roomId, event event.Event) {
-	h.BroadcastToRoom(roomId, OutgoingMessage{
-		Type:    event.EventName(),
-		Payload: event,
-	})
-}
-
-func (h *Hub) PublishToPlayer(playerId playerId, event event.Event) {
-	h.SendToPlayer(playerId, OutgoingMessage{
-		Type:    event.EventName(),
-		Payload: event,
-	})
 }
