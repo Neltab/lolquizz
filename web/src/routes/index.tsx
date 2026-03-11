@@ -1,11 +1,12 @@
-import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
+import { useNavigate, createFileRoute } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useCreateRoom } from "@/lib/api/room";
 import { useLogin } from "@/lib/api/auth";
+import { flushSync } from "react-dom";
 
-export const Route = createLazyFileRoute("/")({
+export const Route = createFileRoute("/")({
 	component: Index,
 });
 
@@ -18,23 +19,22 @@ function Index() {
     const navigate = useNavigate()
 
 
-    const handleCreateRoom = async () => {
+    const handleCreateRoom = useCallback(async () => {
         const { token } = await login();
         gameState.setToken(token);
         gameState.setPlayerName(playerName);
-
         const { code, is_host } = await createRoom({ token, playerName });
-        gameState.setIsHost(is_host);
-        console.log(gameState)
+        flushSync(() => {
+            gameState.setIsHost(is_host);
+        })
         
         await navigate({ to: '/room/$code', params: { code } });
-    }
+    }, [playerName, navigate, login])
 
     const handleJoinRoom = async () => {
         const { token } = await login();
         gameState.setToken(token);
         gameState.setPlayerName(playerName);
-        console.log(gameState)
         await navigate({ to: '/room/$code', params: { code: roomCode } });
     }
 
@@ -51,5 +51,5 @@ function Index() {
                 <Button className="w-full" disabled={!playerName} onClick={handleCreateRoom}>Créer une partie privée</Button>
             </div>
 		</div>
-	);
+	)
 }

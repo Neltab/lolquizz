@@ -11,22 +11,22 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as RoomJoinRouteImport } from './routes/room/join'
 import { Route as RoomCodeRouteImport } from './routes/room/$code'
 
 const DebugLazyRouteImport = createFileRoute('/debug')()
-const IndexLazyRouteImport = createFileRoute('/')()
 
 const DebugLazyRoute = DebugLazyRouteImport.update({
   id: '/debug',
   path: '/debug',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/debug.lazy').then((d) => d.Route))
-const IndexLazyRoute = IndexLazyRouteImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
+} as any)
 const RoomJoinRoute = RoomJoinRouteImport.update({
   id: '/room/join',
   path: '/room/join',
@@ -39,20 +39,20 @@ const RoomCodeRoute = RoomCodeRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexLazyRoute
+  '/': typeof IndexRoute
   '/debug': typeof DebugLazyRoute
   '/room/$code': typeof RoomCodeRoute
   '/room/join': typeof RoomJoinRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexLazyRoute
+  '/': typeof IndexRoute
   '/debug': typeof DebugLazyRoute
   '/room/$code': typeof RoomCodeRoute
   '/room/join': typeof RoomJoinRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexLazyRoute
+  '/': typeof IndexRoute
   '/debug': typeof DebugLazyRoute
   '/room/$code': typeof RoomCodeRoute
   '/room/join': typeof RoomJoinRoute
@@ -66,7 +66,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexLazyRoute: typeof IndexLazyRoute
+  IndexRoute: typeof IndexRoute
   DebugLazyRoute: typeof DebugLazyRoute
   RoomCodeRoute: typeof RoomCodeRoute
   RoomJoinRoute: typeof RoomJoinRoute
@@ -85,7 +85,7 @@ declare module '@tanstack/react-router' {
       id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexLazyRouteImport
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/room/join': {
@@ -106,7 +106,7 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexLazyRoute: IndexLazyRoute,
+  IndexRoute: IndexRoute,
   DebugLazyRoute: DebugLazyRoute,
   RoomCodeRoute: RoomCodeRoute,
   RoomJoinRoute: RoomJoinRoute,
