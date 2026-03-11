@@ -1,4 +1,10 @@
-export type MessageHandler = (payload: any) => void
+export type Message = {
+    type: string
+    payload: any
+    state: any
+}
+
+export type MessageHandler = (msg: Message) => void
 
 export class GameSocket {
   private ws: WebSocket | null = null
@@ -21,10 +27,9 @@ export class GameSocket {
 
     this.ws.onmessage = (event) => {
       const msg = JSON.parse(event.data)
-      console.log('ws message', msg)
       const handlers = this.handlers.get(msg.type)
       if (handlers) {
-        handlers.forEach(h => h(msg.payload))
+        handlers.forEach(h => h(msg))
       }
     }
 

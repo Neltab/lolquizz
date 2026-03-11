@@ -6,7 +6,7 @@ type PlayerJoinedEvent struct {
 	Room   *Room
 }
 
-func (e PlayerJoinedEvent) EventName() string { return "player_joined" }
+func (e *PlayerJoinedEvent) EventName() string { return "player_joined" }
 
 type PlayerLeftEvent struct {
 	RoomId RoomId
@@ -14,7 +14,7 @@ type PlayerLeftEvent struct {
 	Room   *Room
 }
 
-func (e PlayerLeftEvent) EventName() string { return "player_left" }
+func (e *PlayerLeftEvent) EventName() string { return "player_left" }
 
 type SettingsUpdatedEvent struct {
 	RoomId   RoomId
@@ -22,4 +22,4 @@ type SettingsUpdatedEvent struct {
 	Room     *Room
 }
 
-func (e SettingsUpdatedEvent) EventName() string { return "settings_updated" }
+func (e *SettingsUpdatedEvent) EventName() string { return "settings_updated" }

@@ -47,7 +47,7 @@ func (s *RoomService) JoinRoom(ctx context.Context, code string, playerId room.P
 		return nil, fmt.Errorf("find room: %w", err)
 	}
 
-	player := room.NewPlayer(playerId, playerName, false)
+	player := room.NewPlayer(playerId, playerName, r.IsHost(playerId))
 	if err := r.Join(player); err != nil {
 		return nil, fmt.Errorf("join room: %w", err)
 	}
@@ -56,7 +56,7 @@ func (s *RoomService) JoinRoom(ctx context.Context, code string, playerId room.P
 		return nil, fmt.Errorf("save room: %w", err)
 	}
 
-	s.eventBus.Publish(room.PlayerJoinedEvent{
+	s.eventBus.Publish(&room.PlayerJoinedEvent{
 		RoomId: r.Id,
 		Player: player,
 		Room:   r,
@@ -81,7 +81,7 @@ func (s *RoomService) LeaveRoom(ctx context.Context, code string, playerId room.
 		return fmt.Errorf("save room: %w", err)
 	}
 
-	s.eventBus.Publish(room.PlayerLeftEvent{
+	s.eventBus.Publish(&room.PlayerLeftEvent{
 		RoomId: r.Id,
 		Player: player,
 		Room:   r,
@@ -102,7 +102,7 @@ func (s *RoomService) UpdateSettings(ctx context.Context, roomId room.RoomId, se
 		return fmt.Errorf("save room: %w", err)
 	}
 
-	s.eventBus.Publish(room.SettingsUpdatedEvent{
+	s.eventBus.Publish(&room.SettingsUpdatedEvent{
 		RoomId:   r.Id,
 		Settings: settings,
 		Room:     r,

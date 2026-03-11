@@ -10,7 +10,8 @@ type GamePhase int
 
 const (
 	PhaseQuestions GamePhase = iota
-	PhaseAnswers
+	PhaseReview
+	PhaseCorrecting
 	PhaseResults
 	PhaseFinished
 )
@@ -25,9 +26,9 @@ type Game struct {
 }
 
 func NewGame(id GameId, roomId RoomId, questions []*Question, settings *room.Settings) (*Game, error) {
-	if len(questions) == 0 {
-		return nil, ErrNoQuestions
-	}
+	// if len(questions) == 0 {
+	// 	return nil, ErrNoQuestions
+	// }
 
 	return &Game{
 		Id:              id,
@@ -49,7 +50,7 @@ func (g *Game) CurrentQuestion() *Question {
 func (g *Game) NextRound() {
 	g.currentQuestion++
 	if g.currentQuestion >= len(g.Questions) {
-		g.Phase = PhaseAnswers
+		g.Phase = PhaseReview
 		return
 	}
 }
@@ -69,7 +70,7 @@ func (g *Game) SubmitAnswer(playerId PlayerId, answer string) error {
 }
 
 func (g *Game) JudgeAnswer(playerId PlayerId, correct bool) error {
-	if g.Phase != PhaseAnswers {
+	if g.Phase != PhaseReview {
 		return ErrNotInAnswersPhase
 	}
 

@@ -3,8 +3,10 @@ package ws
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"lolquizz/internal/application"
 	"lolquizz/internal/domain/event"
+	"lolquizz/internal/domain/game"
 	"lolquizz/internal/domain/room"
 	"lolquizz/internal/dto"
 )
@@ -46,6 +48,14 @@ func NewRouter(hub *Hub, roomService *application.RoomService, gameService *appl
 			Type:    MsgSettingsUpdated,
 			Payload: ev.Settings,
 			State:   dto.FromRoom(ev.Room),
+		})
+	})
+
+	eventBus.Subscribe("round_started", func(e event.Event) {
+		ev := e.(*game.QuestionStartedEvent)
+		r.hub.PublishToRoom(ev.RoomId, OutgoingMessage{
+			Type:    "round_started",
+			Payload: "round_started",
 		})
 	})
 
@@ -138,6 +148,8 @@ func (r *Router) handleStartGame(ctx context.Context, client *Client, payload js
 		client.SendError(err.Error())
 		return
 	}
+
+	log.Printf("starting game")
 
 	if err := r.gameService.StartGame(context.Background(), room.Id, client.playerId); err != nil {
 		client.SendError(err.Error())

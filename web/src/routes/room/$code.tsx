@@ -1,6 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { createFileRoute, useRouterState } from '@tanstack/react-router'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { GameSocket } from '@/lib/gameSocket'
+import { Message } from '../../lib/gameSocket'
+import PlayerList from '../../components/ui/playerList'
+import { Button } from '../../components/ui/button'
+
 
 export const Route = createFileRoute('/room/$code')({
   component: RouteComponent,
@@ -8,15 +12,22 @@ export const Route = createFileRoute('/room/$code')({
 
 function RouteComponent() {
     const { code } = Route.useParams()
-    const { gameState } = Route.useRouteContext()
+    const { gameState }  = Route.useRouteContext()
     const socketRef = useRef<GameSocket | null>(null)
     const [connected, setConnected] = useState(false)
     const [players, setPlayers] = useState<any[]>([])
+    const [isHost, setIsHost] = useState(false)
+
+    useEffect(() => {
+        setIsHost(gameState.isHost)
+    }, [gameState.isHost])
 
     const joinRoom = useCallback(() => {
-        console.log('connected')
-        if (!gameState.token)
+        console.log('connected', gameState)
+        if (!gameState.token) {
+            console.log(gameState)
             return
+        }
 
         let cancelled = false
 
@@ -34,23 +45,21 @@ function RouteComponent() {
             setConnected(false)
         })
 
-        // Set up message handlers
-        socket.on('room_state', (data) => {
-            if (cancelled) return
-            setPlayers(data.players)
-            gameState.setIsHost(data.is_host)
-        })
 
-        socket.on('player_joined', (data) => {
+        socket.on('player_joined', (data: Message) => {
             if (cancelled) return
-            setPlayers(data.players)
+            setPlayers(data.state.players)
             console.log('player_joined', data)
         })
 
-        socket.on('player_left', (data) => {
+        socket.on('player_left', (data: Message) => {
             if (cancelled) return
-            setPlayers(data.players)
-            gameState.setIsHost(data.is_host)
+            setPlayers(data.state.players)
+        })
+
+        socket.on('round_started', (data: Message) => {
+            if (cancelled) return
+            console.log('round_started', data)
         })
 
         socket.connect()
@@ -59,13 +68,25 @@ function RouteComponent() {
             cancelled = true
             socket.disconnect()
         }
-    }, [])
+    }, [gameState.token])
+
+    const startGame = useCallback(() => {
+        if (!gameState.token) {
+            console.log(gameState)
+            return
+        }
+
+        console.log('start game')
+        socketRef.current?.send('start_game', { room_code: code })
+       
+    }, [gameState.token])
 
     return (
-        <div>
+        <div className='flex flex-col gap-4'>
             <h1>Room {code}</h1>
             <button onClick={joinRoom}>connect to ws</button>
-            {gameState.isHost && <button>Start Game</button>}
+            {isHost && <Button onClick={startGame}>Start Game</Button>}
+            <PlayerList players={players} />
         </div>
     )
 }
