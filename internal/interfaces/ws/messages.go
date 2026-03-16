@@ -30,6 +30,7 @@ const (
 	MsgPlayerLeft      = "player_left"
 	MsgSettingsUpdated = "settings_updated"
 	MsgGameStarted     = "game_started"
+	MsgQuestionStarted = "question_started"
 	MsgTimerExpired    = "timer_expired"
 	MsgAnswerJudged    = "answer_judged"
 	MsgGameFinished    = "game_finished"

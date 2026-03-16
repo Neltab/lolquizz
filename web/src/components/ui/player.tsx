@@ -1,15 +1,15 @@
 export type PlayerProps = {
     name: string
-    score: number
+    avatar: string
     isHost: boolean
 }
 
-export function Player({ name, score, isHost }: PlayerProps) {
+export function Player({ name, avatar, isHost }: PlayerProps) {
     return (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col">
+            <img src={avatar} alt="avatar" />
             <h1>{isHost ? 'Host' : 'Joueur'}</h1>
             <p>{name}</p>
-            <p>{score}</p>
         </div>
     )
 }

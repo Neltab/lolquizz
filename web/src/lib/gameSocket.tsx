@@ -20,7 +20,7 @@ export class GameSocket {
   connect() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     this.ws = new WebSocket(
-      `${protocol}/${window.location.host}/ws?token=${this.token}`
+      `${protocol}//${window.location.host}/ws?token=${this.token}`
     )
 
     this.ws.onopen = () => this.openHandler?.()

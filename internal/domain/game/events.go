@@ -1,20 +1,17 @@
 package game
 
 import (
-	"time"
-
 	"lolquizz/internal/domain/room"
 )
 
 type QuestionStartedEvent struct {
-	RoomId         RoomId
-	QuestionNumber int
-	QuestionText   string
-	Duration       time.Duration
+	RoomId   RoomId
+	Question *Question
+	Game     *Game
 }
 
 func (e *QuestionStartedEvent) EventName() string {
-	return "round_started"
+	return "question_started"
 }
 
 type AnswerSubmittedEvent struct {

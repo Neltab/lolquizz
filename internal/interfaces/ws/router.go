@@ -3,6 +3,7 @@ package ws
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"lolquizz/internal/application"
 	"lolquizz/internal/domain/event"
@@ -51,11 +52,11 @@ func NewRouter(hub *Hub, roomService *application.RoomService, gameService *appl
 		})
 	})
 
-	eventBus.Subscribe("round_started", func(e event.Event) {
+	eventBus.Subscribe(MsgQuestionStarted, func(e event.Event) {
 		ev := e.(*game.QuestionStartedEvent)
 		r.hub.PublishToRoom(ev.RoomId, OutgoingMessage{
-			Type:    "round_started",
-			Payload: "round_started",
+			Type:    MsgQuestionStarted,
+			Payload: dto.FromQuestion(ev.Question),
 		})
 	})
 
@@ -74,8 +75,8 @@ func (r *Router) Handle(client *Client, msg IncomingMessage) {
 		r.handleUpdateSettings(ctx, client, msg.Payload)
 	case MsgStartGame:
 		r.handleStartGame(ctx, client, msg.Payload)
-	// case MsgSubmitAnswer:
-	// 	r.handleSubmitAnswer(client, msg)
+	case MsgSubmitAnswer:
+		r.handleSubmitAnswer(client, msg)
 	// case MsgJudgeAnswer:
 	// 	r.handleJudgeAnswer(client, msg)
 	// case MsgNextRound:
@@ -143,7 +144,7 @@ func (r *Router) handleStartGame(ctx context.Context, client *Client, payload js
 		return
 	}
 
-	room, err := r.roomService.GetRoom(context.Background(), req.RoomCode)
+	room, err := r.roomService.GetRoom(ctx, req.RoomCode)
 	if err != nil {
 		client.SendError(err.Error())
 		return
@@ -151,8 +152,26 @@ func (r *Router) handleStartGame(ctx context.Context, client *Client, payload js
 
 	log.Printf("starting game")
 
-	if err := r.gameService.StartGame(context.Background(), room.Id, client.playerId); err != nil {
+	if err := r.gameService.StartGame(ctx, room.Id, client.playerId); err != nil {
 		client.SendError(err.Error())
 		return
 	}
+}
+
+func (r *Router) handleSubmitAnswer(client *Client, msg IncomingMessage) {
+	var req struct {
+		RoomCode string `json:"room_code"`
+		Answer   string `json:"answer"`
+	}
+	if err := json.Unmarshal(msg.Payload, &req); err != nil {
+		client.SendError("invalid payload")
+		return
+	}
+
+	fmt.Printf(req.Answer)
+
+	// if err := r.gameService.SubmitAnswer(client.playerId, req.RoomCode, req.Answer); err != nil {
+	// 	client.SendError(err.Error())
+	// 	return
+	// }
 }

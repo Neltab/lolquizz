@@ -1,5 +1,18 @@
 package room
 
+type RoomCreatedEvent struct {
+	RoomId RoomId
+	Room   *Room
+}
+
+func (e *RoomCreatedEvent) EventName() string { return "room_created" }
+
+type RoomDeletedEvent struct {
+	RoomId RoomId
+}
+
+func (e *RoomDeletedEvent) EventName() string { return "room_deleted" }
+
 type PlayerJoinedEvent struct {
 	RoomId RoomId
 	Player *Player

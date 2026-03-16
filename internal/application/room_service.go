@@ -10,6 +10,9 @@ import (
 	"sync"
 )
 
+// RoomService orchestrates room lifecycle operations such as creation, joining,
+// leaving, and settings updates. It coordinates between the domain layer and
+// infrastructure (repository, event bus) and ensures room codes are unique.
 type RoomService struct {
 	rooms    room.Repository
 	eventBus event.Publisher
@@ -17,6 +20,7 @@ type RoomService struct {
 	mu       sync.Mutex
 }
 
+// NewRoomService returns a RoomService wired to the given repository, event publisher, and ID generator.
 func NewRoomService(rooms room.Repository, events event.Publisher, idGen func() string) *RoomService {
 	return &RoomService{
 		rooms:    rooms,
@@ -25,6 +29,7 @@ func NewRoomService(rooms room.Repository, events event.Publisher, idGen func() 
 	}
 }
 
+// CreateRoom generates a unique room code, creates a new room with the given player as host, and persists it.
 func (s *RoomService) CreateRoom(ctx context.Context, hostId room.PlayerId, hostName string) (*room.Room, error) {
 	code, err := s.generateUniqueCode(ctx)
 	if err != nil {
@@ -38,9 +43,16 @@ func (s *RoomService) CreateRoom(ctx context.Context, hostId room.PlayerId, host
 		return nil, fmt.Errorf("save room: %w", err)
 	}
 
+	s.eventBus.Publish(&room.RoomCreatedEvent{
+		RoomId: r.Id,
+		Room:   r,
+	})
+
 	return r, nil
 }
 
+// JoinRoom adds a player to an existing room identified by its code.
+// It publishes a PlayerJoinedEvent on success.
 func (s *RoomService) JoinRoom(ctx context.Context, code string, playerId room.PlayerId, playerName string) (*room.Room, error) {
 	r, err := s.rooms.FindByCode(ctx, code)
 	if err != nil {
@@ -65,6 +77,8 @@ func (s *RoomService) JoinRoom(ctx context.Context, code string, playerId room.P
 	return r, nil
 }
 
+// LeaveRoom removes a player from a room. If the leaving player is the host,
+// the domain layer transfers host ownership. It publishes a PlayerLeftEvent on success.
 func (s *RoomService) LeaveRoom(ctx context.Context, code string, playerId room.PlayerId) error {
 	r, err := s.rooms.FindByCode(ctx, code)
 	if err != nil {
@@ -90,6 +104,7 @@ func (s *RoomService) LeaveRoom(ctx context.Context, code string, playerId room.
 	return nil
 }
 
+// UpdateSettings replaces the room's settings and publishes a SettingsUpdatedEvent.
 func (s *RoomService) UpdateSettings(ctx context.Context, roomId room.RoomId, settings *room.Settings) error {
 	r, err := s.rooms.FindById(ctx, roomId)
 	if err != nil {
@@ -111,10 +126,13 @@ func (s *RoomService) UpdateSettings(ctx context.Context, roomId room.RoomId, se
 	return nil
 }
 
+// GetRoom retrieves a room by its code.
 func (s *RoomService) GetRoom(ctx context.Context, code string) (*room.Room, error) {
 	return s.rooms.FindByCode(ctx, code)
 }
 
+// generateUniqueCode produces a random 6-character alphabetic code (excluding I and O)
+// and verifies it doesn't collide with an existing room. It retries up to 20 times.
 func (s *RoomService) generateUniqueCode(ctx context.Context) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

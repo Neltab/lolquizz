@@ -30,7 +30,7 @@ func NewRoom(id RoomId, code string, host *Player) *Room {
 		Status:    StatusSetuping,
 		HostId:    host.Id,
 		Players:   make(map[PlayerId]*Player),
-		Settings:  &Settings{MaxPlayers: 10},
+		Settings:  &Settings{MaxPlayers: 10, QuestionCount: 10},
 		CreatedAt: time.Now(),
 	}
 	r.Players[host.Id] = host

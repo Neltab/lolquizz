@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"lolquizz/internal/domain/game"
+	"strconv"
 	"sync"
 )
 
@@ -22,8 +23,13 @@ func (r *QuestionRepository) GetQuestions(ctx context.Context, count int) ([]*ga
 	defer r.mu.RUnlock()
 
 	questions := make([]*game.Question, 0, count)
-	for _, q := range r.questions {
-		questions = append(questions, q)
+	for i := 0; i < count; i++ {
+		questions = append(questions, game.NewQuestion(
+			"Question "+strconv.Itoa(i),
+			"",
+			game.DifficultyEasy,
+			10,
+		))
 	}
 	return questions, nil
 }

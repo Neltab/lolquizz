@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"lolquizz/internal/domain/event"
@@ -63,26 +62,17 @@ func (s *GameService) StartGame(ctx context.Context, roomId game.RoomId, hostId 
 		return fmt.Errorf("save room: %w", err)
 	}
 
-	// question := g.CurrentQuestion()
-
 	go func() {
 		ticker := time.NewTicker(5 * time.Second)
-		counter := 0
+		defer ticker.Stop()
 
-		for range ticker.C {
-			counter++
-			if counter >= 10 {
-				ticker.Stop()
-				break
-			}
-
-			log.Printf("question started")
-
+		for _, q := range g.Questions {
 			s.eventBus.Publish(&game.QuestionStartedEvent{
-				RoomId:       roomId,
-				QuestionText: "Foo",
-				Duration:     10 * time.Second,
+				RoomId:   roomId,
+				Question: q,
+				Game:     g,
 			})
+			<-ticker.C
 		}
 	}()
 

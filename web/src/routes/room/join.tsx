@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useLogin } from "@/lib/api/auth";
 import { useNavigate } from "@tanstack/react-router";
+import { Card, CardContent } from '../../components/ui/card';
+import { PlayerSetup } from '../../components/ui/playerSetup';
 
 type JoinPageSearch = {
   code: string,
@@ -21,24 +23,26 @@ export const Route = createFileRoute('/room/join')({
 function RouteComponent() {
   const { code } = Route.useSearch()
   const { gameState } = Route.useRouteContext();
-  const [playerName, setPlayerName] = useState("");
   const { mutateAsync: login } = useLogin();
   const navigate = useNavigate()
 
 
-  const handleJoinRoom = async () => {
+  const handleJoinRoom = async (playerName: string, roomCode: string) => {
       const { token } = await login();
       gameState.setToken(token);
       gameState.setIsHost(false);
       gameState.setPlayerName(playerName);
       
-      navigate({ to: '/room/$code', params: { code } });
+      navigate({ to: '/room/$code', params: { code: roomCode } });
   }
 
   return (
-    <div>
-            <Input onChange={(e) => setPlayerName(e.target.value)} placeholder="playerName" />
-      <Button disabled={!playerName} onClick={handleJoinRoom}>Join</Button>
+    <div className="w-full h=full flex flex-col items-center justify-center grow">
+      <Card>
+        <CardContent>
+          <PlayerSetup code={code} joinOnly={true} handleJoinRoom={handleJoinRoom} />
+        </CardContent>
+      </Card>
     </div>
   );
 }
