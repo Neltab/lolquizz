@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"lolquizz/internal/application"
 	"lolquizz/internal/domain/event"
 	"lolquizz/internal/domain/game"
@@ -144,21 +143,13 @@ func (r *Router) handleStartGame(ctx context.Context, client *Client, payload js
 		return
 	}
 
-	room, err := r.roomService.GetRoom(ctx, req.RoomCode)
-	if err != nil {
-		client.SendError(err.Error())
-		return
-	}
-
-	log.Printf("starting game")
-
-	if err := r.gameService.StartGame(ctx, room.Id, client.playerId); err != nil {
+	if err := r.gameService.StartGame(ctx, req.RoomCode, client.playerId); err != nil {
 		client.SendError(err.Error())
 		return
 	}
 }
 
-func (r *Router) handleSubmitAnswer(client *Client, msg IncomingMessage) {
+func (r *Router) handleSubmitAnswer(ctx context.Context, client *Client, msg IncomingMessage) {
 	var req struct {
 		RoomCode string `json:"room_code"`
 		Answer   string `json:"answer"`
@@ -170,8 +161,8 @@ func (r *Router) handleSubmitAnswer(client *Client, msg IncomingMessage) {
 
 	fmt.Printf(req.Answer)
 
-	// if err := r.gameService.SubmitAnswer(client.playerId, req.RoomCode, req.Answer); err != nil {
-	// 	client.SendError(err.Error())
-	// 	return
-	// }
+	if err := r.gameService.SubmitAnswer(ctx, client.playerId, req.RoomCode, req.Answer); err != nil {
+		client.SendError(err.Error())
+		return
+	}
 }

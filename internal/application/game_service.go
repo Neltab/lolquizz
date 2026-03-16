@@ -34,8 +34,8 @@ func NewGameService(rooms room.Repository, events event.Publisher, questions Que
 	}
 }
 
-func (s *GameService) StartGame(ctx context.Context, roomId game.RoomId, hostId game.PlayerId) error {
-	r, err := s.rooms.FindById(ctx, roomId)
+func (s *GameService) StartGame(ctx context.Context, roomCode string, hostId game.PlayerId) error {
+	r, err := s.rooms.FindByCode(ctx, roomCode)
 	if err != nil {
 		return fmt.Errorf("find room: %w", err)
 	}
@@ -50,13 +50,13 @@ func (s *GameService) StartGame(ctx context.Context, roomId game.RoomId, hostId 
 		return fmt.Errorf("get questions: %w", err)
 	}
 
-	g, err := game.NewGame(game.GameId(s.idGen()), roomId, questions, settings)
+	g, err := game.NewGame(game.GameId(s.idGen()), r.Id, questions, settings)
 	if err != nil {
 		return fmt.Errorf("create game: %w", err)
 	}
 
 	s.games[g.Id] = g
-	s.roomGames[roomId] = g.Id
+	s.roomGames[r.Id] = g.Id
 
 	if err := s.rooms.Save(ctx, r); err != nil {
 		return fmt.Errorf("save room: %w", err)
@@ -68,13 +68,36 @@ func (s *GameService) StartGame(ctx context.Context, roomId game.RoomId, hostId 
 
 		for _, q := range g.Questions {
 			s.eventBus.Publish(&game.QuestionStartedEvent{
-				RoomId:   roomId,
+				RoomId:   r.Id,
 				Question: q,
 				Game:     g,
 			})
 			<-ticker.C
 		}
 	}()
+
+	return nil
+}
+
+func (s *GameService) SubmitAnswer(ctx context.Context, roomCode string, playerId game.PlayerId, answer string) error {
+	r, err := s.rooms.FindByCode(ctx, roomCode)
+	if err != nil {
+		return fmt.Errorf("find room: %w", err)
+	}
+
+	gameId, ok := s.roomGames[r.Id]
+	if !ok {
+		return fmt.Errorf("no game in this room")
+	}
+
+	g, ok := s.games[gameId]
+	if !ok {
+		return fmt.Errorf("no game in this room")
+	}
+
+	if err := g.SubmitAnswer(playerId, answer); err != nil {
+		return fmt.Errorf("submit answer: %w", err)
+	}
 
 	return nil
 }

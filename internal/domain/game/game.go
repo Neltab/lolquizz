@@ -47,7 +47,7 @@ func (g *Game) CurrentQuestion() *Question {
 	return g.Questions[g.currentQuestion]
 }
 
-func (g *Game) NextRound() {
+func (g *Game) NextQuestion() {
 	g.currentQuestion++
 	if g.currentQuestion >= len(g.Questions) {
 		g.Phase = PhaseReview
