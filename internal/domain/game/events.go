@@ -4,6 +4,15 @@ import (
 	"lolquizz/internal/domain/room"
 )
 
+type QuestionPhaseStartedEvent struct {
+	RoomId RoomId
+	Game   *Game
+}
+
+func (e *QuestionPhaseStartedEvent) EventName() string {
+	return "question_phase_started"
+}
+
 type QuestionStartedEvent struct {
 	RoomId   RoomId
 	Question *Question
@@ -21,6 +30,16 @@ type AnswerSubmittedEvent struct {
 
 func (e *AnswerSubmittedEvent) EventName() string {
 	return "answer_submitted"
+}
+
+type ReviewPhaseStartedEvent struct {
+	RoomId   RoomId
+	Question *Question
+	Game     *Game
+}
+
+func (e *ReviewPhaseStartedEvent) EventName() string {
+	return "review_started"
 }
 
 type AnswerJudgedEvent struct {

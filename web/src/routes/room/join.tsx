@@ -1,7 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
 import { useLogin } from "@/lib/api/auth";
 import { useNavigate } from "@tanstack/react-router";
 import { Card, CardContent } from '../../components/ui/card';

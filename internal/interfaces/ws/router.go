@@ -75,7 +75,7 @@ func (r *Router) Handle(client *Client, msg IncomingMessage) {
 	case MsgStartGame:
 		r.handleStartGame(ctx, client, msg.Payload)
 	case MsgSubmitAnswer:
-		r.handleSubmitAnswer(client, msg)
+		r.handleSubmitAnswer(ctx, client, msg.Payload)
 	// case MsgJudgeAnswer:
 	// 	r.handleJudgeAnswer(client, msg)
 	// case MsgNextRound:
@@ -149,12 +149,12 @@ func (r *Router) handleStartGame(ctx context.Context, client *Client, payload js
 	}
 }
 
-func (r *Router) handleSubmitAnswer(ctx context.Context, client *Client, msg IncomingMessage) {
+func (r *Router) handleSubmitAnswer(ctx context.Context, client *Client, payload json.RawMessage) {
 	var req struct {
 		RoomCode string `json:"room_code"`
 		Answer   string `json:"answer"`
 	}
-	if err := json.Unmarshal(msg.Payload, &req); err != nil {
+	if err := json.Unmarshal(payload, &req); err != nil {
 		client.SendError("invalid payload")
 		return
 	}

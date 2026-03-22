@@ -62,21 +62,24 @@ func (s *GameService) StartGame(ctx context.Context, roomCode string, hostId gam
 		return fmt.Errorf("save room: %w", err)
 	}
 
-	go func() {
-		ticker := time.NewTicker(5 * time.Second)
-		defer ticker.Stop()
-
-		for _, q := range g.Questions {
-			s.eventBus.Publish(&game.QuestionStartedEvent{
-				RoomId:   r.Id,
-				Question: q,
-				Game:     g,
-			})
-			<-ticker.C
-		}
-	}()
+	go s.handleQuestions(g, r)
 
 	return nil
+}
+
+func (s *GameService) handleQuestions(g *game.Game, r *room.Room) {
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	for _, q := range g.Questions {
+		s.eventBus.Publish(&game.QuestionStartedEvent{
+			RoomId:   r.Id,
+			Question: q,
+			Game:     g,
+		})
+		<-ticker.C
+	}
+
 }
 
 func (s *GameService) SubmitAnswer(ctx context.Context, roomCode string, playerId game.PlayerId, answer string) error {
@@ -99,5 +102,13 @@ func (s *GameService) SubmitAnswer(ctx context.Context, roomCode string, playerI
 		return fmt.Errorf("submit answer: %w", err)
 	}
 
+	return nil
+}
+
+func (s *GameService) ReviewQuestion(ctx context.Context, roomCode string, playerId game.PlayerId) error {
+	return nil
+}
+
+func (s *GameService) SubmitReview(ctx context.Context, roomCode string, playerId game.PlayerId, correct bool) error {
 	return nil
 }
